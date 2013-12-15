@@ -44,6 +44,9 @@ int findVar(FieldList * variable){
 	return -1;	
 }
 
+void main(){
+	
+}
 
 
 
