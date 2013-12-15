@@ -21,6 +21,10 @@ void InitialHashTable(){
 		varlist[i] = NULL ;	
 	}
 }
+void InitialFieldList(FieldList * variable){
+	variable->type = NULL;
+	variable->tail = NULL;
+}
 
 int addVar(FieldList* variable){
 	char *name = variable->name;
@@ -33,8 +37,7 @@ int addVar(FieldList* variable){
 	varlist[probe] = variable;
 }
 
-int findVar(FieldList * variable){
-	char *name = variable->name;
+int findVar(char *name){
 	unsigned int probe = hash_pjw(name);
 	while (varlist[probe] != NULL){
 		char *Hashname = varlist[probe]->name;		

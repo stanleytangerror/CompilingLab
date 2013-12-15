@@ -19,7 +19,7 @@ int main(int argc ,char** argv){
 
 //  yydebug = 1;
   yyparse();
-  
+  InitialHashTable();
   if (compile) {
     traversal(forest, 0, printnode);
     printf("========================\n");

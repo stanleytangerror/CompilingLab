@@ -2,10 +2,12 @@
 #include "semantic.c"
 
 node * forest;
+int vartemp;
+Type vartype;
 FieldList * variable;
 
 bool compile;
-bool fDef;
+bool fDef = false , fStmt = false , fFunDec = false ,fParamDec = false;
 
 const char * stringNonTerminate [] = { 
  "Program", "ExtDefList", "ExtDef", "ExtDecList",
@@ -234,9 +236,30 @@ void addvariable(node * p , int indent) {
     case NODE_NONTERMINATE:
       if (p->ntype.type_nonterm == Def) {
         printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
-	variable = (FieldList *) malloc(sizeof(FieldList));
+	//variable = (FieldList *) malloc(sizeof(FieldList));
 	fDef = true;
       }
+      if (p->ntype)
+      if (p->ntype.type_nonterm == Stmt) {
+        printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
+	fStmt = true;
+      }
+      if (p->ntype.type_nonterm == FunDec) {
+        printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
+	fFunDec = true;
+      }
+      if (p->ntype.type_nonterm == ParamDec && fFunDec){
+      	fParamDec = true;
+      }
+      if (p->ntype.type_nonterm == VarDec){
+		if (p->child->label ==NODE_ID) {
+			vartype.kind = basic;
+			vartype.u.basic = vartemp; 			
+		}
+		else{
+			vartype.kind = array;
+		}
+	}
       break;
     case NODE_INT:
       printf("INT: %d\n", p->nvalue.value_int);
@@ -248,6 +271,12 @@ void addvariable(node * p , int indent) {
       break;
     case NODE_TYPE:
       printf("TYPE: %s\n", stringTypeValue[p->nvalue.value_type]);
+	if (fDef){
+	    vartemp = p->nvalue.value_type;	
+	}
+	if (fParamDec){
+	    vartemp = p->nvalue.value_type;	
+	}
       break;
     case NODE_RELOP:
       printf("RELOP: %s\n", stringRelopValue[p->nvalue.value_relop]);
@@ -256,15 +285,52 @@ void addvariable(node * p , int indent) {
       printf("%s\n", stringTerminate[p->ntype.type_term]);
 	if (p->ntype.type_term == eSEMI){
 		fDef = false;
-		printf("Def finish \n");
-		printf("probe : = %d\n" , addVar(variable) );	
+		printf("Def finish \n");	
 	}
       break;    
     case NODE_ID:
       printf("ID: %s\n", p->nvalue.value_id);
-	 if (fDef){
+	 if (fDef){	
+	    variable = (FieldList *) malloc(sizeof(FieldList));
+	    InitialFieldList(variable);
+	    variable->type = &vartype;
 	    strcpy(variable->name , p->nvalue.value_id);
-	    printf("HashVarName: %s\n", variable->name);
+	    //printf("HashVarName: %s\n", variable->name);
+	    int probe = addVar(variable);
+	    if (probe > 0){
+	    	printf("probe : = %d\n" , probe);
+	    	printf("hash[].name : = %s\n" , varlist[probe]->name);
+	   	printf("hash[].kind : = %d\n" , varlist[probe]->type->kind);
+	    	printf("hash[].type : = %d\n" , varlist[probe]->type->u.basic);
+	    }
+	    else{
+	    	printf("Error type 3 at line %d: Redefined variable \"%s\"\n " ,
+			p->lineno , p->nvalue.value_id);
+     	    }
+	}
+	if (fStmt){
+	   if (findVar(p->nvalue.value_id) < 0){
+		printf("Error type 1 at line %d: Undefined variable \"%s\"\n " ,
+			p->lineno , p->nvalue.value_id);	
+	   }	
+	}
+	if (fFunDec){
+	   if (findVar(p->nvalue.value_id) < 0){
+	   	printf("Error type 4 at line %d: Redefined function \"%s\"\n " ,
+			p->lineno , p->nvalue.value_id);
+		fFunDec = false;
+   	   }
+	   else{
+	   	variable = (FieldList *) malloc(sizeof(FieldList));
+		strcpy(variable->name , p->nvalue.value_id);
+  	   }	
+	}
+	if (fParamDec){
+	   FieldList * p = variable;
+	   bool f=true;	   
+		while (p!=NULL){
+		    if (strcmp(p->name , ))	
+		}	
 	}
       break;
     default:
