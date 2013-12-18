@@ -7,6 +7,7 @@ struct A{
 int main(float a , int j , int bb)
 {
   int i;
+  struct A xx;
    float array[19][10];
   return a;
 }

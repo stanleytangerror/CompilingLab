@@ -7,9 +7,12 @@
 
 FieldList* varlist[MAX_VARIABLE] = {NULL};
 Type * typelist[MAX_VARIABLE] = {NULL};
+Func * funclist[MAX_VARIABLE] = {NULL};
 
 Type vartype;
 Type * typeptr = NULL;
+Func * funcptr = NULL;
+char currentfuncname[MAXID];
 
 unsigned int hash_pjw(char *name){
   unsigned int val = 0, i;
@@ -42,11 +45,6 @@ int addType(Type* type){
     else return -1; 	
   }
   typelist[probe] = type;
-
-  printf("probe : = %d\n" , probe);
-  printf("typelist[].kind : = %d\n" , typelist[probe]->kind);
-  printf("typelist[].name : = %s\n" , typelist[probe]->u.structure.name);
-  printf("typelist[].type : = %d\n" , typelist[probe]->u.structure.structure);
 }
 
 int addVar(FieldList* variable){
@@ -58,11 +56,17 @@ int addVar(FieldList* variable){
     else return -1; 	
   }
   varlist[probe] = variable;
+}
 
-  printf("probe : = %d\n" , probe);
-  printf("hash[].name : = %s\n" , varlist[probe]->name);
-  printf("hash[].kind : = %d\n" , varlist[probe]->type->kind);
-  printf("hash[].type : = %d\n" , varlist[probe]->type->u.basic);
+int addFunc(Func* func){
+  char *name = func->name;
+  unsigned int probe = hash_pjw(name);
+  while (funclist[probe] != NULL){
+  	char *funcname = funclist[probe]->name;
+	if (strcmp(funcname , name)!= 0) probe++;
+	else return -1;
+  }	
+  funclist[probe] = func;
 }
 
 int findVar(char *name){
@@ -75,7 +79,7 @@ int findVar(char *name){
   return -1;	
 }
 
-int subtreeDef(node * p, Type * upperlevel, FieldList * fieldspace) {
+int subtreeDef(node * p, Type * upperlevel, Func * currentfunc) {
   bool isStruct = false;
   //FieldList * fl = (FieldList *) malloc(sizeof(FieldList));
   vartype.kind = basic;
@@ -89,11 +93,12 @@ int subtreeDef(node * p, Type * upperlevel, FieldList * fieldspace) {
     case NODE_TYPE:
       vartype.kind = basic;
       vartype.u.basic = p->child->nvalue.value_type;
+      if (vartype.u.basic == 1) printf("float====\n");
       //addDec(p->sibling, Type type, NULL);
       break;
     case NODE_NONTERMINATE:
       assert(p->child->ntype.type_nonterm == StructSpecifier);
-      subtreeStructSpecifier(p->child, NULL);
+      subtreeStructSpecifier(p->child, NULL , currentfunc);
       isStruct = true;
       //vartype.kind = structure;
       //strncpy(vartype.u.structure.name, p->child->sibling->child->nvalue.value_id, MAXID);
@@ -106,12 +111,12 @@ int subtreeDef(node * p, Type * upperlevel, FieldList * fieldspace) {
   p = p->sibling;
   //Declist
   printf("start add DecList\n");
-  subtreeDecList(p, upperlevel, isStruct);
+  subtreeDecList(p, upperlevel, isStruct ,currentfunc);
   printf("end add DecList\n");
   //SEMI
 }
 
-int subtreeExtDef(node * p, Type * upperlevel, FieldList * fieldspace) {
+int subtreeExtDef(node * p, Type * upperlevel, Func * currentfunc) {
   bool isStruct = false;
   vartype.kind = basic;
   vartype.u.basic = 0;
@@ -140,14 +145,34 @@ int subtreeExtDef(node * p, Type * upperlevel, FieldList * fieldspace) {
 
   p = p->sibling;
   //Declist
+  if (p->ntype.type_nonterm == FunDec){
+	printf("start add FuncList\n");
+	subtreeFunctionSpecifier(p , upperlevel , currentfunc);
+	printf("end add FuncList\n");
+	semantic(p->sibling , upperlevel , NULL);
+  }else{
   printf("start add DecList\n");
-  subtreeDecList(p, upperlevel, isStruct);
+  subtreeDecList(p, upperlevel, isStruct , currentfunc);
   printf("end add DecList\n");
-  //SEMI
+  }//SEMI
   return 0;
 }
 
-int subtreeStructSpecifier(node * p, Type * upperlevel, FieldList * fieldspace) {
+int subtreeFunctionSpecifier(node *p, Type * upperlevel , Func * currentfunc){
+	if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == FunDec){
+		Func * func = (Func *) malloc (sizeof(Func));
+		func->returntype  =(Type *) malloc (sizeof(Type));
+		memcpy((void *)func->returntype , (void *)&vartype , sizeof(Type));
+		strncpy(func->name , p->child->nvalue.value_id , MAXID);
+		strncpy(currentfuncname , p->child->nvalue.value_id , MAXID);
+		func->param = NULL;
+		addFunc(func);
+		funcptr = func;
+		semantic(p->child->sibling->sibling , upperlevel , func);
+	}
+}
+
+int subtreeStructSpecifier(node * p, Type * upperlevel, Func * currentfunc) {
   if (p != NULL && p->child->sibling->sibling->sibling != NULL) {
     node * q = p;
     //StructSpecifier define
@@ -162,19 +187,21 @@ int subtreeStructSpecifier(node * p, Type * upperlevel, FieldList * fieldspace) 
       strncpy(type->u.structure.name, p->sibling->child->nvalue.value_id, MAXID);
       addType(type);
       typeptr = type;
-      semantic(q->child->sibling->sibling->sibling, type); 
+      semantic(q->child->sibling->sibling->sibling, type , currentfunc);
+      typeptr = type; 
     }
   }
 }
 
-int subtreeDecList(node * p, Type * upperlevel, bool isStruct) {
+int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfunc) {
   if (p != NULL) {
+    printf("p-nodevalue = %s\n" , stringNonTerminate[p->ntype.type_nonterm]);
     node * subtree = p;
     if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == VarDec
         && p->child->label == NODE_ID) {
-
       FieldList * fl = (FieldList *) malloc(sizeof(FieldList));
-      if (!isStruct) {
+	printf("isSturct = %d\n" ,isStruct );      
+	if (!isStruct) {
         //basic type
         fl->type = (Type *) malloc(sizeof(Type));
         memcpy((void *)fl->type, (void *)&vartype, sizeof(Type));
@@ -223,40 +250,54 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct) {
           }
         }
       }
-
-
+      if (currentfunc != NULL){
+	    printf("funcname : = %s\n" , currentfunc->name);
+	    Func * f = currentfunc;
+	    FieldList * ahead = NULL;
+	    if (f->param == NULL) {
+			printf("p0005\n");			
+			f->param = fl;
+			printf("p0006\n");
+		}
+	    else {
+		ahead = f->param; 
+	       while (ahead->tail != NULL) ahead = ahead->tail;
+	       ahead->tail = fl;
+      	    }
+       }
       addVar(fl);
     }
-    subtreeDecList(subtree->child, upperlevel, isStruct);
-    subtreeDecList(subtree->sibling, upperlevel, isStruct);
+    subtreeDecList(subtree->child, upperlevel, isStruct , currentfunc);
+    subtreeDecList(subtree->sibling, upperlevel, isStruct , currentfunc);
   }
 }
 
-void semantic(node * p, Type * upperlevel) {
+void semantic(node * p, Type * upperlevel , Func * currentfunc) {
   if (p != NULL) {
     if (p->label == NODE_NONTERMINATE ) {
       printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
       switch (p->ntype.type_nonterm) {
         case Def:
+	case ParamDec:
           printf("start add Def\n");
-          subtreeDef(p, upperlevel, NULL);
+          subtreeDef(p, upperlevel, currentfunc);
           printf("end add Def\n");
-          semantic(p->sibling, upperlevel);
+          semantic(p->sibling, upperlevel , currentfunc);
           break;
         case ExtDef:
           printf("start add ExtDef\n");
-          subtreeDef(p, upperlevel, NULL);
+          subtreeExtDef(p, upperlevel, currentfunc);
           printf("end add ExtDef\n");
-          semantic(p->sibling, upperlevel);
+          semantic(p->sibling, upperlevel , currentfunc);
           break;
         default:
-          semantic(p->child, upperlevel);
-          semantic(p->sibling, upperlevel);
+          semantic(p->child, upperlevel , currentfunc);
+          semantic(p->sibling, upperlevel , currentfunc);
           break;
       }
     } else {
-      semantic(p->child, upperlevel);
-      semantic(p->sibling, upperlevel);
+      semantic(p->child, upperlevel , currentfunc);
+      semantic(p->sibling, upperlevel , currentfunc);
     }
   }
 }
@@ -340,3 +381,57 @@ void gettypelist() {
     }
   }
 }
+
+void getfunclist() {
+  int i = 0;
+  FieldList * param = NULL;
+  Type * type = NULL;
+  for (i = 0; i < MAX_VARIABLE; i ++) {
+    if (funclist[i] != NULL ) {
+      printf("funclist[%d]: %s\n", i, funclist[i]->name);
+      switch (funclist[i]->returntype->kind) {
+        case basic :
+          printf("\treturnkind: basic\n");
+          printf("\tu: %s\n", (funclist[i]->returntype->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+          break;
+        case structure :
+          printf("\treturnkind: structure\n");
+          printf("\tu: struct %s\n", funclist[i]->returntype->u.structure.name);
+          break;
+        default :
+          printf("\tfuntion invalid\n");
+          break;
+      }
+	printf("paramlist:\n");
+      if (funclist[i]->param != NULL) param =funclist[i]->param;
+	while (param != NULL){
+	switch(param->type->kind){	
+	case basic :
+          printf("\tkind: basic\n");
+          printf("\tu: %s\n", (param->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+          break;
+        case array :
+          printf("\tkind: array\n");
+          printf("\tu: ");
+          type = param->type;
+          while (type->kind == array) {
+            printf("%d ", type->u.array.size);
+            type = type->u.array.elem;
+          }
+          if (type->kind == basic) {
+            printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+          } else {
+            printf("%s \n", type->u.structure.name);
+          }
+          break;
+        case structure :
+          printf("\tkind: structure\n");
+          printf("\tu: struct %s\n", param->type->u.structure.name);
+          break;
+        default :
+          printf("\tvariable invalid\n");
+          break;
+      	}
+	param = param->tail;
+  	}
+}}}	
