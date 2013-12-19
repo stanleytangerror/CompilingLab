@@ -20,6 +20,8 @@ char firstid[MAXID];
 bool leftmost = true;
 bool valid = true;
 
+int args[100];
+
 unsigned int hash_pjw(char *name){
   unsigned int val = 0, i;
   for (; *name ; ++ name){
@@ -341,6 +343,69 @@ int subtreeStmt(node * p, Type * upperlevel, Func * currentfunc){
 	}
 }
 
+bool subtreeArgs(node * p , char * funcname){
+	int probe = findFunc(funcname);
+	FieldList * param = funclist[probe]->param;
+	int paramlist[100];
+	int count=1;
+	while (param != NULL ){
+		if (param->type->kind == basic)
+		paramlist[count] = param->type->u.basic;
+		count++;
+		param = param->tail;
+	}
+	int i=0;
+	count--;	
+	for (i=1; i<=count ; i++){
+		printf("%d*-*",paramlist[i]);
+	}
+	printf("\n");
+	bool check = true;
+	if (args[0] == count) {
+		int i=0;		
+		for (i=1 ; i<=count ; i++){
+			if (args[i] != paramlist[i]) check =false;
+		}
+	}
+	if (args[0] != count || (!check)){
+		printf("Error type 9 at line %d: The method \"%s(" , p->lineno , funcname);
+		if (count > 0) {
+			if (paramlist[1] == 0) printf("int");
+			else printf("float");
+			int i = 2;
+			for (i=2 ; i<= count ; i++) {
+				if (paramlist[i] == 0) printf(",int");
+				else printf(",float");
+				}
+		} 
+		printf(") is not applicable for the arguments \"(");
+		if (args[0]>0){
+			if (args[1] == 0) printf("int");
+			else printf("float");
+			int i = 2;
+			for (i=2 ; i<= args[0] ; i++) {
+				if (args[i] == 0) printf(",int");
+				else printf(",float");
+				}
+		}
+		printf(")\"\n");
+		return false;
+	}
+	return true;	
+	
+}
+void travelArgs(node * p){
+	if (p != NULL){
+		if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == Exp){
+			args[0]++;
+			int count = args[0];
+			if (p->child->label == NODE_INT) args[count] = 0;
+			if (p->child->label == NODE_FLOAT) args[count] = 1;
+		}
+	    travelArgs(p->child);
+	    travelArgs(p->sibling);
+	}
+}
 int subtreeExp(node * p){
     if (p == NULL) printf("node is null\n");
     if (p != NULL && valid){
@@ -351,11 +416,25 @@ int subtreeExp(node * p){
 		printf("i am in func----\n");	
 		node * q = p->child;
 		int probe = findFunc(q->nvalue.value_id);
+		char *funcname = q->nvalue.value_id;
 		if ( probe < 0 ) {
 				valid = false;				
 				printf("Error type 2 at line %d: Undefined function \"%s\"\n" , q->lineno , q->nvalue.value_id);
 			}
 		else {
+			q = q->sibling->sibling;
+			if (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Args){
+				memset(args , 0 , sizeof(int));
+				travelArgs(q);
+				int i=0;
+				for (i=1; i<=args[0] ; i++) printf("%d--" , args[i]);
+				printf("\n");
+				
+				if ( !subtreeArgs(q,funcname) ){
+					subtreeExp(q->sibling);
+				}			
+			}
+			else{
 			if (leftmost){
 				leftmost = false;
 				lefttype = funclist[probe]->returntype;
@@ -363,10 +442,16 @@ int subtreeExp(node * p){
 				subtreeExp(p->sibling);			
 			}
 			else{
-				printf("function return type heritage\n");
-				subtreeExp(p->child);
-				subtreeExp(p->sibling);			
-			}		
+				if ( (lefttype->kind != funclist[probe]->returntype->kind) || 
+						(lefttype->u.basic != funclist[probe]->returntype->u.basic) ){
+					printf("Error type 5 at line %d:Type mismatched\n" , p->child->lineno);
+					valid = false;				
+				}
+				else {
+		 		subtreeExp(p->child);
+				subtreeExp(p->sibling);
+			   	}		
+			}}		
 		}
 	}
 	//identify ID
