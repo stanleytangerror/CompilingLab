@@ -27,6 +27,4 @@ int main()
 		j = j-2;
 		i = i+1;
 	}
-
-	i.image;
 }

@@ -10,8 +10,4 @@ struct Complex2
 	int mag;
 	float angle;
 	int extra = 3;
-};
-
-int main()
-{
 }

@@ -213,9 +213,7 @@ int subtreeDef(node * p, Type * upperlevel, Func * currentfunc) {
 
   p = p->sibling;
   //Declist
-  printf("start add DecList\n");
   subtreeDecList(p, upperlevel, isStruct ,currentfunc);
-  printf("end add DecList\n");
   //SEMI
 }
 
@@ -250,9 +248,7 @@ int subtreeExtDef(node * p, Type * upperlevel, Func * currentfunc) {
   //Declist
   if (p->ntype.type_nonterm == FunDec){
     if (p->sibling->label == NODE_NONTERMINATE){
-	    printf("start add FuncList\n");
 	    subtreeFunctionSpecifier(p , upperlevel , currentfunc);
-	    printf("end add FuncList\n");
 	    semantic(p->sibling , upperlevel , NULL);
 	}
     if (p->sibling->label == NODE_TERMINATE){
@@ -275,9 +271,7 @@ int subtreeExtDef(node * p, Type * upperlevel, Func * currentfunc) {
 	}
     } 
     else{
-    printf("start add DecList\n");
     subtreeDecList(p, upperlevel, isStruct , currentfunc);
-    printf("end add DecList\n");
   }//SEMI
   return 0;
 }
@@ -402,7 +396,6 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
 
       //add function parameters
       if (currentfunc != NULL){
-        printf("funcname : = %s\n" , currentfunc->name);
         Func * f = currentfunc;
         FieldList * ahead = NULL;
         if (f->param == NULL) {
@@ -462,9 +455,7 @@ int subtreeStmt(node * p, Type * upperlevel, Func * currentfunc){
     }
   if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == Exp){
     fexp = true;
-    printf("Exp-----\n");
     subtreeExp(p);
-    printf("endExp---\n");	
     } 
   }
 }
@@ -483,10 +474,6 @@ bool subtreeArgs(node * p , char * funcname){
   }
   int i=0;
   count--;	
-  for (i=1; i<=count ; i++){
-    printf("%d*-*",paramlist[i]);
-  }
-  printf("\n");
   bool check = true;
   if (args[0] == count) {
     int i=0;		
@@ -551,17 +538,24 @@ Type * subtreeExp(node * p){
   if (p != NULL && valid){
     Type * exptype = NULL;
     bool branch = false;
+    //identify AND
+    if (p->label == NODE_TERMINATE && (p->ntype.type_term == eAND || p->ntype.type_term == eOR || p->ntype.type_term == eNOT) ){
+      	branch = true;
+	if (lefttype->kind != 0 || lefttype->u.basic !=0 ){
+			valid = false;
+			printf("Error type 7 at line %d: Operands type mismatched\n", p->lineno);
+		}
+	}
     //identify ASSIGNOP
     if (p->label == NODE_TERMINATE && p->ntype.type_term == eASSIGNOP){
-		printf("ASSIGNOP---\n");
 		assignop = true;
 		node * q = p->parent->child;
 		bool check = false;
 		if (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Exp){
 			if (q->child->label == NODE_ID && q->child->sibling == NULL)
 				check = true;
-			if (q->child->label == NODE_NONTERMINATE && q->child->ntype.type_nonterm == Exp && q->child->sibling == NULL ){
-				if (q->child->sibling->label == NODE_TERMINATE && q->child->sibling->ntype.type_term == eLB)
+			if (q->child->label == NODE_NONTERMINATE && q->child->ntype.type_nonterm == Exp && q->child->sibling != NULL ){
+				if (q->child->sibling->label == NODE_TERMINATE && (q->child->sibling->ntype.type_term == eLB || q->child->sibling->ntype.type_term == eDOT))
 				check =true;
 			}
 		}
@@ -577,7 +571,6 @@ Type * subtreeExp(node * p){
     //identify function
     if (p->child != NULL && p->child->sibling != NULL && p->child->label == NODE_ID && p->child->sibling->ntype.type_term == eLP){
       branch = true;	
-      printf("i am in func----\n");	
       node * q = p->child;
       int probe = findFunc(q->nvalue.value_id);
       char *funcname = q->nvalue.value_id;
@@ -622,7 +615,6 @@ Type * subtreeExp(node * p){
     //identify ID
     if (p->child != NULL && p->child->label == NODE_ID && p->child->sibling == NULL){
       branch = true;
-      printf("i am in var----\n");
       node * q = p->child, * tempnode = p;
       Type * temptype, * childtype;
       FieldList * mem;
@@ -690,7 +682,6 @@ Type * subtreeExp(node * p){
         if (leftmost){
           leftmost = false;
           lefttype = temptype;
-          printf("store left hand type\n");
           subtreeExp(p->child);
           subtreeExp(p->sibling);
         } else {
@@ -728,8 +719,6 @@ Type * subtreeExp(node * p){
         int checkbasic = 0;
         if (p->child->label == NODE_INT) checkbasic = 0;
         else checkbasic = 1;
-        printf("i am in INTorFLOAT\n");
-        printf("lefttype : = %d , %d\n" , lefttype->kind , lefttype->u.basic);
         if (lefttype->kind != basic || lefttype->u.basic != checkbasic){
           valid = false;
 	  if (freturn) printf("Error type 8 at line %d: The return type mismatched\n" , p->child->lineno);
@@ -759,21 +748,15 @@ void semantic(node * p, Type * upperlevel , Func * currentfunc) {
       switch (p->ntype.type_nonterm) {
         case Def:
         case ParamDec:
-          printf("start add Def\n");
           subtreeDef(p, upperlevel, currentfunc);
-          printf("end add Def\n");
           semantic(p->sibling, upperlevel , currentfunc);
           break;
         case ExtDef:
-          printf("start add ExtDef\n");
           subtreeExtDef(p, upperlevel, currentfunc);
-          printf("end add ExtDef\n");
           semantic(p->sibling, upperlevel , currentfunc);
           break;
         case Stmt:
-          printf("start StmtList\n");
           subtreeStmt(p , upperlevel , currentfunc);
-          printf("end add StmtList\n");
 	     if(fstmt) {
 			semantic(p->child->sibling->sibling->sibling->sibling, upperlevel ,currentfunc);
 			semantic(p->sibling , upperlevel , currentfunc);			

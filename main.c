@@ -26,10 +26,10 @@ int main(int argc ,char** argv){
     //traversal(forest, 0, addvariable);
     semantic(forest, NULL,NULL);
     printf("========================\n");
-    gettypelist();
-    getvarlist();
-    getfunclist();
-    getfuncdeclist();
+    //gettypelist();
+    //getvarlist();
+    //getfunclist();
+    //getfuncdeclist();
     checkfunc();
   }
 
