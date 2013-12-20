@@ -49,6 +49,7 @@ ExtDefList	: ExtDef ExtDefList  { $$ = reduce(ExtDefList, @$.first_line, 2 , $1,
 ExtDef		: Specifier ExtDecList SEMI  { $$ = reduce(ExtDef, @$.first_line, 3 , $1, $2, $3);  }
 		| Specifier SEMI  { $$ = reduce(ExtDef, @$.first_line, 2 , $1, $2);  }
 		| Specifier FunDec CompSt  { $$ = reduce(ExtDef, @$.first_line, 3 , $1, $2, $3);  }
+		| Specifier FunDec SEMI  { $$ = reduce(ExtDef, @$.first_line, 3 , $1, $2, $3);  }
 		| error SEMI  { yyerrok; } 
     ;
 ExtDecList 	: VarDec  { $$ = reduce(ExtDecList, @$.first_line, 1 , $1);  }

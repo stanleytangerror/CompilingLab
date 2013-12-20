@@ -1,11 +1,18 @@
-struct A {
-  int m;
-  float n[9][3];
+struct Temp1
+{
+	int i;
+	float j;
 };
 
-int main(int a, float b){
-  struct A t;
-  t.temp = 9;
-  t.m = 2.8;
-  m.a = 0;
+struct Temp2
+{
+	int x;
+	float y;
+};
+
+int main()
+{
+	struct Temp1 t1;
+	struct Temp2 t2;
+	t1 =t2;
 }

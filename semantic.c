@@ -8,6 +8,7 @@
 FieldList* varlist[MAX_VARIABLE] = {NULL};
 Type * typelist[MAX_VARIABLE] = {NULL};
 Func * funclist[MAX_VARIABLE] = {NULL};
+Func * funcdeclist[MAX_VARIABLE] = {NULL};
 
 Type vartype;
 Type * lefttype = NULL;
@@ -19,6 +20,9 @@ char firstid[MAXID];
 
 bool leftmost = true;
 bool valid = true;
+bool decfunc = false;
+bool decconsistent = false;
+bool assignop = false;
 
 int args[100];
 
@@ -87,10 +91,31 @@ int addFunc(Func* func){
   funclist[probe] = func;
 }
 
+int addFuncdec(Func* func){
+  char *name = func->name;
+  unsigned int probe = hash_pjw(name);
+  while (funcdeclist[probe] != NULL){
+    char *funcname = funcdeclist[probe]->name;
+    if (strcmp(funcname , name)!= 0) probe++;
+    else return -1;
+  }	
+  funcdeclist[probe] = func;
+}
+
 int findFunc(char *name){
   unsigned int probe = hash_pjw(name);
   while (funclist[probe] != NULL){
     char * funcname = funclist[probe]->name;
+    if (strcmp(funcname , name) == 0) return probe;
+    else probe++;
+  }
+  return -1;
+}
+
+int findFuncDec(char *name){
+  unsigned int probe = hash_pjw(name);
+  while (funcdeclist[probe] != NULL){
+    char * funcname = funcdeclist[probe]->name;
     if (strcmp(funcname , name) == 0) return probe;
     else probe++;
   }
@@ -108,7 +133,7 @@ int findVar(char *name){
 }
 
 bool cmpVar(Type * p, Type * q) {
-  if (p == NULL && q == NULL && p->kind != q->kind) {
+  if (p == NULL || q == NULL || p->kind != q->kind) {
     return false;
   }
   switch (p->kind) {
@@ -129,6 +154,28 @@ bool cmpVar(Type * p, Type * q) {
       return false;
   }
 }
+bool cmpFunc(Func * f1, Func * f2){
+	bool F = true;
+	FieldList * p1= NULL;
+	FieldList * p2 = NULL;
+	if (strcmp(f1->name , f2->name) != 0) return false;
+	if ( !cmpVar( f1->returntype , f2->returntype) ) return false;
+	p1 = f1->param;
+	p2 = f2->param;	
+	while (true){
+		if (p1 != NULL && p2 != NULL){
+			if (strcmp(p1->name , p2->name) != 0) return false;
+			if (! cmpVar(p1->type , p2->type)) return false;
+			else {
+				p1 = p1->tail;
+				p2 = p2->tail;
+			  }		
+		}
+		if (p1 != NULL && p2 == NULL) return false;
+		if (p1 == NULL && p2 != NULL) return false;
+		if (p1 == NULL && p2 == NULL) return true;
+	}
+}
 
 int subtreeDef(node * p, Type * upperlevel, Func * currentfunc) {
   bool isStruct = false;
@@ -144,7 +191,8 @@ int subtreeDef(node * p, Type * upperlevel, Func * currentfunc) {
     case NODE_TYPE:
       vartype.kind = basic;
       vartype.u.basic = p->child->nvalue.value_type;
-      if (vartype.u.basic == 1) printf("float====\n");
+      if (vartype.u.basic == 1) printf("float==========\n");
+      else printf("int=============\n");
       //addDec(p->sibling, Type type, NULL);
       break;
     case NODE_NONTERMINATE:
@@ -197,11 +245,32 @@ int subtreeExtDef(node * p, Type * upperlevel, Func * currentfunc) {
   p = p->sibling;
   //Declist
   if (p->ntype.type_nonterm == FunDec){
-    printf("start add FuncList\n");
-    subtreeFunctionSpecifier(p , upperlevel , currentfunc);
-    printf("end add FuncList\n");
-    semantic(p->sibling , upperlevel , NULL);
-  }else{
+    if (p->sibling->label == NODE_NONTERMINATE){
+	    printf("start add FuncList\n");
+	    subtreeFunctionSpecifier(p , upperlevel , currentfunc);
+	    printf("end add FuncList\n");
+	    semantic(p->sibling , upperlevel , NULL);
+	}
+    if (p->sibling->label == NODE_TERMINATE){
+	    printf("Function Declaration\n");
+	    decfunc = true ;
+	    subtreeFunctionSpecifier(p , upperlevel , currentfunc);
+	       if (decconsistent){
+			printf("Declaration check\n");
+			int probe = findFuncDec(funcptr->name);
+			assert( probe>=0);
+			if (!cmpFunc( funcptr , funcdeclist[probe])){
+				printf("Error type 19 at line %d: Inconsistent declaration of function \"%s\"\n",
+					funcptr->funclineno , funcptr->name);
+			}	
+			decconsistent = false;	
+		}
+	    printf("end Function declaration\n");
+	    decfunc = false;
+	    semantic(p->sibling , upperlevel , NULL);	
+	}
+    } 
+    else{
     printf("start add DecList\n");
     subtreeDecList(p, upperlevel, isStruct , currentfunc);
     printf("end add DecList\n");
@@ -217,8 +286,15 @@ int subtreeFunctionSpecifier(node *p, Type * upperlevel , Func * currentfunc){
     strncpy(func->name , p->child->nvalue.value_id , MAXID);
     strncpy(currentfuncname , p->child->nvalue.value_id , MAXID);
     func->param = NULL;
-    if ( addFunc(func) < 0) printf("Error type 4 at line %d: Redefined function \"%s\"\n", 
+    if (decfunc) func->funclineno = p->child->lineno;
+    int probe = findFunc(func->name);
+    if (!decfunc && addFunc(func) < 0) printf("Error type 4 at line %d: Redefined function \"%s\"\n", 
         p->child->lineno, p->child->nvalue.value_id);
+    if (decfunc) {
+	if ( addFuncdec(func) < 0 ){
+		decconsistent = true;
+	} 
+     }
     funcptr = func;
     semantic(p->child->sibling->sibling , upperlevel , func);
   }
@@ -273,6 +349,7 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
         strncpy(fl->name, p->child->nvalue.value_id, MAXID);
         fl->tail = NULL;
         lefttype = fl->type;
+	printf("lefttype : = %d\n" , lefttype->u.basic );
       } else {
         //basic structrue
         if (typeptr == NULL) {
@@ -282,6 +359,7 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
         strncpy(fl->name, p->child->nvalue.value_id, MAXID);
         fl->tail = NULL;
         lefttype = fl->type;
+	printf("lefttype : = %d\n" , lefttype->u.basic );
       }
 
       //array
@@ -303,6 +381,7 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
         }
       }
       lefttype = fl->type;
+      printf("lefttype : = %d\n" , lefttype->kind );
 
       //add structure using space
       if (upperlevel != NULL) {
@@ -328,9 +407,7 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
         Func * f = currentfunc;
         FieldList * ahead = NULL;
         if (f->param == NULL) {
-          printf("p0005\n");			
           f->param = fl;
-          printf("p0006\n");
         }
         else {
           ahead = f->param; 
@@ -338,9 +415,8 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
           ahead->tail = fl;
         }
       }
-      if (addVar(fl) < 0)
+      if (!decfunc && addVar(fl) < 0)
         printf("Error type 3 at line %d: Redefined variable \"%s\"\n" , idnode->lineno , idnode->nvalue.value_id );
-      
       // initial when define
       if (p->sibling != NULL && p->sibling->ntype.type_term == eASSIGNOP) {
         if (upperlevel != NULL && upperlevel->kind == structure) {
@@ -348,6 +424,7 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
           printf("Error type 15 at line %d: Initialize in structure field\n", p->lineno);
         } else {
           if (!isStruct) {
+	    leftmost = false;
             subtreeExp(p->sibling->sibling);
           } else {
           }
@@ -362,13 +439,17 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
 int subtreeStmt(node * p, Type * upperlevel, Func * currentfunc){
   leftmost = true;
   valid = true;
+  assignop = false;
   p = p->child;
   if (p->label == NODE_TERMINATE && p->ntype.type_term == eRETURN){
     printf("functionname : = %s\n" , currentfuncname);
     int probe = findFunc(currentfuncname);
+    printf("jjjjjjjjjjjjjjjj\n");
     Type * retype = funclist[probe]->returntype;
+      
     node *q=p;
     q = q->sibling->child;
+  
     if (q->label == NODE_ID){
       probe = findVar(q->nvalue.value_id);
       if (probe < 0) printf("Error type 1 at line %d: Undefined variable \"%s\"\n" , q->lineno , q->nvalue.value_id);
@@ -460,6 +541,29 @@ int subtreeExp(node * p){
   if (p == NULL) printf("node is null\n");
   if (p != NULL && valid){
     bool branch = false;
+    //identify ASSIGNOP
+    if (p->label == NODE_TERMINATE && p->ntype.type_term == eASSIGNOP){
+		printf("ASSIGNOP---\n");
+		assignop = true;
+		node * q = p->parent->child;
+		bool check = false;
+		if (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Exp){
+			if (q->child->label == NODE_ID && q->child->sibling == NULL)
+				check = true;
+			if (q->child->label == NODE_NONTERMINATE && q->child->ntype.type_nonterm == Exp){
+				if (q->child->sibling->label == NODE_TERMINATE && q->child->sibling->ntype.type_term == eLB)
+				check =true;
+			}
+		}
+		if (check){
+			subtreeExp(p->child);
+			subtreeExp(p->sibling);
+		}
+		else {
+		valid = false;
+		printf("Error type 6 at line %d: The left-hand side of an assignment must be a variable\n" , p->lineno);
+		}
+    }
     //identify function
     if (p->child != NULL && p->child->sibling != NULL && p->child->label == NODE_ID && p->child->sibling->ntype.type_term == eLP){
       branch = true;	
@@ -468,8 +572,11 @@ int subtreeExp(node * p){
       int probe = findFunc(q->nvalue.value_id);
       char *funcname = q->nvalue.value_id;
       if ( probe < 0 ) {
-        valid = false;				
-        printf("Error type 2 at line %d: Undefined function \"%s\"\n" , q->lineno , q->nvalue.value_id);
+	valid = false;
+	if (findVar(funcname) > 0 )
+		printf("Error type 11 at line %d: \"%s\" must be a function\n"  ,q->lineno , funcname);		
+	else
+	        printf("Error type 2 at line %d: Undefined function \"%s\"\n" , q->lineno , q->nvalue.value_id);
       }
       else {
         q = q->sibling->sibling;
@@ -572,6 +679,8 @@ int subtreeExp(node * p){
         } else {
           if ( !cmpVar(lefttype, temptype) ) {
             valid = false;
+	    if (assignop) printf("Error type 5 at line %d: Type mismatched\n" , p->lineno);
+	    else printf("Error type 7 at line %d: Operands type mismatched\n", p->lineno);	
           }
           if (valid) {
               subtreeExp(p->child);
@@ -583,8 +692,16 @@ int subtreeExp(node * p){
     //identify INTorFLOAT
     if (p->child != NULL && (p->child->label == NODE_INT || p->child->label == NODE_FLOAT) ){
       if (leftmost){
-        valid = false;			
-        printf("Error type 6 at line %d: The left-hand side of an assignment must be a variable\n" , p->child->lineno);	
+	leftmost = false;
+	printf("-------INT or FLOAT-----\n");
+	vartype.kind = basic;
+	if (p->child->label == NODE_INT) vartype.u.basic = 0;
+	else vartype.u.basic = 1;
+	lefttype = &vartype;
+	subtreeExp(p->child);
+	subtreeExp(p->sibling);
+        //valid = false;			
+        //printf("Error type 6 at line %d: The left-hand side of an assignment must be a variable\n" , p->child->lineno);	
       }
       else {
         int checkbasic = 0;
@@ -751,12 +868,12 @@ void getfunclist() {
       while (param != NULL){
         switch(param->type->kind){	
           case basic :
-            printf("\tparam: %d\n", param->name);
+            printf("\tparam: %s\n", param->name);
             printf("\tkind: basic\n");
             printf("\tu: %s\n", (param->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
             break;
           case array :
-            printf("\tparam: %d\n", param->name);
+            printf("\tparam: %s\n", param->name);
             printf("\tkind: array\n");
             printf("\tu: ");
             type = param->type;
@@ -771,7 +888,7 @@ void getfunclist() {
             }
             break;
           case structure :
-            printf("\tparam: %d\n", param->name);
+            printf("\tparam: %s\n", param->name);
             printf("\tkind: structure\n");
             printf("\tu: struct %s\n", param->type->u.structure.name);
             break;
@@ -784,3 +901,96 @@ void getfunclist() {
     }
   }
 }	
+
+void getfuncdeclist() {
+  int i = 0;
+  FieldList * param = NULL;
+  Type * type = NULL;
+  for (i = 0; i < MAX_VARIABLE; i ++) {
+    if (funcdeclist[i] != NULL ) {
+      printf("funcdeclist[%d]: %s\n", i, funcdeclist[i]->name);
+      switch (funcdeclist[i]->returntype->kind) {
+        case basic :
+          printf("\treturnkind: basic\n");
+          printf("\tu: %s\n", (funcdeclist[i]->returntype->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+          break;
+        case structure :
+          printf("\treturnkind: structure\n");
+          printf("\tu: struct %s\n", funcdeclist[i]->returntype->u.structure.name);
+          break;
+        default :
+          printf("\tfuntion invalid\n");
+          break;
+      }
+      
+      if (funcdeclist[i]->param != NULL) param =funcdeclist[i]->param;
+      while (param != NULL){
+        switch(param->type->kind){	
+          case basic :
+            printf("\tparam: %s\n", param->name);
+            printf("\tkind: basic\n");
+            printf("\tu: %s\n", (param->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+            break;
+          case array :
+            printf("\tparam: %s\n", param->name);
+            printf("\tkind: array\n");
+            printf("\tu: ");
+            type = param->type;
+            while (type->kind == array) {
+              printf("%d ", type->u.array.size);
+              type = type->u.array.elem;
+            }
+            if (type->kind == basic) {
+              printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+            } else {
+              printf("%s \n", type->u.structure.name);
+            }
+            break;
+          case structure :
+            printf("\tparam: %s\n", param->name);
+            printf("\tkind: structure\n");
+            printf("\tu: struct %s\n", param->type->u.structure.name);
+            break;
+          default :
+            printf("\tvariable invalid\n");
+            break;
+        }
+        param = param->tail;
+      }
+    }
+  }
+}
+
+
+void checkfunc(){
+	int i = 0 , probe = 0;
+	char* name;
+  	FieldList * paramdec = NULL;
+	FieldList * paramdef = NULL;
+  	Type * type = NULL;
+	bool F = true;
+	for (i = 0 ; i<MAX_VARIABLE ; i++){
+		if ( funcdeclist[i] != NULL){
+			name = funcdeclist[i]->name;
+			printf("checkfunc name : =%s\n" , name);
+			if ( findFunc(name) < 0 ) {
+				F = false;
+				printf("Error type 18 at line %d: Undefined function \"%s\"\n" ,
+					 funcdeclist[i]->funclineno , name);
+			}
+			else {
+				probe = findFunc(name);
+				if (! cmpFunc(funcdeclist[i] , funclist[probe]) )
+				   printf("Error type 19 at line %d: Inconsistent declaration of function \"%s\"\n",
+					funcdeclist[i]->funclineno , name);
+			}
+		}
+		
+	}
+}
+
+
+
+
+
+

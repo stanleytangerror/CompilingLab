@@ -25,6 +25,7 @@ struct Type_ {
 };
 
 struct Func_ {
+	int funclineno;
 	Type * returntype;
 	char name[NAME_LEN];
 	FieldList * param;
@@ -39,6 +40,7 @@ struct FieldList_ {
 extern FieldList* varlist[MAX_VARIABLE];
 extern Type * typelist[MAX_VARIABLE];
 extern Func * funclist[MAX_VARIABLE];
+extern Func * funcdeclist[MAX_VARIABLE];
 
 void InitialHashTable();
 
