@@ -7,7 +7,7 @@ int abs(int z)
 int abs2(int x, int y)
 {
 	if (x - y >= 0) return x - y;
-	else return y - x;
+	else return y - x(5);
 }
 
 int main() {
@@ -15,7 +15,7 @@ int main() {
 	float k;
 
 	i = 0;
-	if (i[0] <= 10) 
+	if (i <= 10) 
 		j = abs2(i, 4);
 	else
 		j = abs(i);
@@ -23,7 +23,7 @@ int main() {
 	while (i < 10)
 	{
 		k = k + 1.0;
-		j[5];
+		i[5];
 	}
 
 	j;
