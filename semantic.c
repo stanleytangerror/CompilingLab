@@ -23,6 +23,7 @@ bool valid = true;
 bool decfunc = false;
 bool decconsistent = false;
 bool assignop = false;
+bool freturn = false;
 
 int args[100];
 
@@ -440,16 +441,20 @@ int subtreeStmt(node * p, Type * upperlevel, Func * currentfunc){
   leftmost = true;
   valid = true;
   assignop = false;
+  freturn = false;
   p = p->child;
   if (p->label == NODE_TERMINATE && p->ntype.type_term == eRETURN){
     printf("functionname : = %s\n" , currentfuncname);
     int probe = findFunc(currentfuncname);
-    printf("jjjjjjjjjjjjjjjj\n");
     Type * retype = funclist[probe]->returntype;
-      
-    node *q=p;
+    freturn = true;
+    leftmost = false;
+    lefttype = retype;
+    subtreeExp(p->sibling , NULL);
+    freturn = false;  
+    /*node *q=p;
     q = q->sibling->child;
-  
+    
     if (q->label == NODE_ID){
       probe = findVar(q->nvalue.value_id);
       if (probe < 0) printf("Error type 1 at line %d: Undefined variable \"%s\"\n" , q->lineno , q->nvalue.value_id);
@@ -464,8 +469,8 @@ int subtreeStmt(node * p, Type * upperlevel, Func * currentfunc){
       else checkbasic =1;
       if (retype->kind != basic || retype->u.basic != checkbasic)
         printf("Error type 8 at line %d: The return type mismatched\n" , q->lineno);
-    }
-
+    }*/
+    
   }
   if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == Exp){
     printf("Exp-----\n");
@@ -679,6 +684,7 @@ int subtreeExp(node * p){
         } else {
           if ( !cmpVar(lefttype, temptype) ) {
             valid = false;
+	    if (freturn) printf("Error type 8 at line %d: The return type mismatched\n" , p->lineno);
 	    if (assignop) printf("Error type 5 at line %d: Type mismatched\n" , p->lineno);
 	    else printf("Error type 7 at line %d: Operands type mismatched\n", p->lineno);	
           }
@@ -711,7 +717,9 @@ int subtreeExp(node * p){
         printf("lefttype : = %d , %d\n" , lefttype->kind , lefttype->u.basic);
         if (lefttype->kind != basic || lefttype->u.basic != checkbasic){
           valid = false;
-          printf("Error type 5 at line %d: Type mismatched\n" , p->child->lineno);
+	  if (freturn) printf("Error type 8 at line %d: The return type mismatched\n" , p->child->lineno);
+	  if (assignop) printf("Error type 5 at line %d: Type mismatched\n" , p->child->lineno);
+          else printf("Error type 7 at line %d: Operands type mismatched\n" , p->child->lineno);
         }
         else {
           subtreeExp(p->child);

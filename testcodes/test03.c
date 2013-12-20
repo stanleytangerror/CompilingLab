@@ -1,18 +1,13 @@
-struct Temp1
-{
-	int i;
-	float j;
-};
+int f(int a , float b);
 
-struct Temp2
-{
-	int x;
-	float y;
-};
+int f(int a ,float b){
+        a = b;
+	a + 1.0;
+	return a+1.0;
+}
 
+int func();
 int main()
 {
-	struct Temp1 t1;
-	struct Temp2 t2;
-	t1 =t2;
+	
 }
