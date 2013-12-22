@@ -252,11 +252,9 @@ int subtreeExtDef(node * p, Type * upperlevel, Func * currentfunc) {
 	    semantic(p->sibling , upperlevel , NULL);
 	}
     if (p->sibling->label == NODE_TERMINATE){
-	    printf("Function Declaration\n");
 	    decfunc = true ;
 	    subtreeFunctionSpecifier(p , upperlevel , currentfunc);
 	       if (decconsistent){
-			printf("Declaration check\n");
 			int probe = findFuncDec(funcptr->name);
 			assert( probe>=0);
 			if (!cmpFunc( funcptr , funcdeclist[probe])){
@@ -265,7 +263,6 @@ int subtreeExtDef(node * p, Type * upperlevel, Func * currentfunc) {
 			}	
 			decconsistent = false;	
 		}
-	    printf("end Function declaration\n");
 	    decfunc = false;
 	    semantic(p->sibling , upperlevel , NULL);	
 	}
@@ -494,19 +491,7 @@ bool subtreeArgs(node * p , char * funcname){
       if (paramlist[i] == 2) printf(",structure");
       }
     } 
-    printf(")\" is not applicable for the arguments \"(");
-    if (args[0]>0){
-      if (args[1] == 0) printf("int");
-      if (args[1] == 1) printf("float");
-	if (args[1] == 2) printf("structure");
-      int i = 2;
-      for (i=2 ; i<= args[0] ; i++) {
-        if (args[i] == 0) printf(",int");
-      	if (args[i] == 1) printf(",float");
-	if (args[i] == 2) printf(",structure");
-      }
-    }
-    printf(")\"\n");
+    printf(")\" is not applicable for the arguments.\n");
     return false;
   }
   return true;	
@@ -583,7 +568,7 @@ Type * subtreeExp(node * p){
       	}
       else {
         q = q->sibling->sibling;
-        if (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Args){
+        if ((q->label == NODE_TERMINATE && q->ntype.type_term == eRP) || (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Args)){
           memset(args , 0 , sizeof(int));
           travelArgs(q);
           int i=0;
@@ -990,7 +975,6 @@ void checkfunc(){
 	for (i = 0 ; i<MAX_VARIABLE ; i++){
 		if ( funcdeclist[i] != NULL){
 			name = funcdeclist[i]->name;
-			printf("checkfunc name : =%s\n" , name);
 			if ( findFunc(name) < 0 ) {
 				F = false;
 				printf("Error type 18 at line %d: Undefined function \"%s\"\n" ,

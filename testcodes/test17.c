@@ -25,7 +25,7 @@ int main()
 	}k;
 
 	i = 0;
-	if (i<=10) j=k.mag = abs(i);
+	if (i<=10) j= k.mag = abs(i);
 
 	while (i<10)
 	{

@@ -22,10 +22,9 @@ int main(int argc ,char** argv){
   InitialHashTable();
   if (compile) {
     traversal(forest, 0, printnode);
-    printf("========================\n");
+    printf("============================\n");
     //traversal(forest, 0, addvariable);
     semantic(forest, NULL,NULL);
-    printf("========================\n");
     //gettypelist();
     //getvarlist();
     //getfunclist();
