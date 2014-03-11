@@ -1,3 +1,25 @@
-CompilingLab
+# CompilingLab
 ============
-Lab of Compiler Course
+Lab of Compiler Curriculum using [flex]
+
+## Content
+
+ - [Team members](#team-members)
+ - [Project struct](#project-struct)
+
+## Team members
+CS, NJU
+ - Shunlei Tang
+ - Yan Xie
+
+## Project struct
+```
+CompilingLab/
+├── Flex/
+│   ├── lexical.l
+│   └── scanner
+├── Bison/
+│   ├── ...
+│   └── ...
+└── README.md
+```
