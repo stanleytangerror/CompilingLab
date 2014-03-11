@@ -1,11 +1,12 @@
-lex = lexical.l
-file = test.c
+
 analyze:
-	flex $(lex)
-	gcc lex.yy.c -o lex
-	./lex $(file)
+	flex lexical.l
+	bison -d syntax.y
+	gcc main.c syntax.tab.c -lfl -ly -o parser	
+	./parser test.c
 
 clean:
-	-rm *.l~
+	-rm *~
 	-rm lex.yy.c
-	-rm lex
+	-rm syntax.tab.*
+	-rm parser
