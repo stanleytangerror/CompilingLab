@@ -1,6 +1,6 @@
 # CompilingLab
 ============
-Lab of Compiler Curriculum using [flex]
+Lab of Compiler Curriculum
 
 ## Content
 
