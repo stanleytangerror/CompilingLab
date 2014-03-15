@@ -3,7 +3,7 @@ file = test.c
 analyze:
 	flex $(lex)
 	gcc lex.yy.c -o lex
-	./lex $(file)
+	./lex $(file) | less
 
 clean:
 	-rm *.l~
