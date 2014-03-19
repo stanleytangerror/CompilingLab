@@ -1,8 +1,14 @@
 
 analyze:
 	flex lexical.l
-	bison -d syntax.y
-	gcc main.c syntax.tab.c -lfl -ly -o parser	
+	bison -d -v syntax.y
+	gcc main.c syntax.tab.c -lfl -ly -o parser
+	./parser test.c
+
+debug:
+	flex lexical.l
+	bison -d -t syntax.y
+	gcc main.c syntax.tab.c -lfl -ly -o parser
 	./parser test.c
 
 clean:

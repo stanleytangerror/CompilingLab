@@ -1,6 +1,6 @@
 %{
 	#include<stdio.h>
-	#include "lex.yy.c"
+  #include "lex.yy.c"
 %}
 %locations
 /* declared types*/
@@ -11,7 +11,9 @@
 }
 
 /* declared tokens*/
-%token INT FLOAT ID OCT HEX NUM
+%token <type_int> INT
+%token <type_float> FLOAT
+%token ID OCT HEX NUM
 %token SEMI COMMA ASSIGNOP RELOP
 %token PLUS MINUS STAR DIV
 %token AND OR DOT NOT TYPE
@@ -20,6 +22,18 @@
 
 /* declared non-terminals */
 //%type <type_double> Exp Factor Term
+
+%right ASSIGNOP
+%right NOT
+%left PLUS MINUS
+%left STAR DIV
+%left RELOP
+%left AND OR
+%left LP LB LC
+%left RP RB RC
+%left DOT
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
 
 %%
 Program		: ExtDefList
@@ -64,7 +78,7 @@ StmtList	: Stmt StmtList
 Stmt 		: Exp SEMI
 		| CompSt
 		| RETURN Exp SEMI
-		| IF LP Exp RP Stmt
+		| IF LP Exp RP Stmt   %prec LOWER_THAN_ELSE
 		| IF LP Exp RP Stmt ELSE Stmt
 		| WHILE LP Exp RP Stmt
 		;
@@ -115,8 +129,6 @@ Term	: INT {$$ = $1;}
 	;
 */
 %%
-
-
 
 yyerror(char* msg){
 	fprintf(stderr, "Error type B at line %d: Syntax error\n" , yylineno);
