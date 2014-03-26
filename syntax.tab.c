@@ -65,7 +65,7 @@
 /* Line 371 of yacc.c  */
 #line 1 "syntax.y"
 
-	#include<stdio.h>
+	#include <stdio.h>
   #include "lex.yy.c"
 
 /* Line 371 of yacc.c  */
@@ -93,7 +93,7 @@
 # define YY_YY_SYNTAX_TAB_H_INCLUDED
 /* Enabling traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 1
+# define YYDEBUG 0
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -144,15 +144,13 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 387 of yacc.c  */
-#line 7 "syntax.y"
+#line 8 "syntax.y"
 
-	int type_int;
-	float type_float;
-	double type_double;
+	struct node * type_node;
 
 
 /* Line 387 of yacc.c  */
-#line 156 "syntax.tab.c"
+#line 154 "syntax.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -193,7 +191,7 @@ int yyparse ();
 /* Copy the second part of user declarations.  */
 
 /* Line 390 of yacc.c  */
-#line 197 "syntax.tab.c"
+#line 195 "syntax.tab.c"
 
 #ifdef short
 # undef short
@@ -508,12 +506,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    39,    39,    41,    42,    44,    45,    46,    48,    49,
-      51,    52,    54,    55,    57,    58,    60,    62,    63,    65,
-      66,    68,    69,    71,    73,    75,    76,    78,    79,    80,
-      81,    82,    83,    85,    86,    88,    90,    91,    93,    94,
-      96,    97,    98,    99,   100,   101,   102,   103,   104,   105,
-     106,   107,   108,   109,   110,   111,   112,   113,   115,   116
+       0,    42,    42,    44,    45,    47,    48,    49,    51,    52,
+      54,    55,    57,    58,    60,    61,    63,    65,    66,    68,
+      69,    71,    72,    74,    76,    78,    79,    81,    82,    83,
+      84,    85,    86,    88,    89,    91,    93,    94,    96,    97,
+      99,   100,   101,   102,   103,   104,   105,   106,   107,   108,
+     109,   110,   111,   112,   113,   114,   115,   116,   118,   119
 };
 #endif
 
@@ -1607,9 +1605,333 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-      
+        case 2:
 /* Line 1792 of yacc.c  */
-#line 1613 "syntax.tab.c"
+#line 42 "syntax.y"
+    { forest = reduce(Program, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 3:
+/* Line 1792 of yacc.c  */
+#line 44 "syntax.y"
+    { (yyval.type_node) = reduce(ExtDefList, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 5:
+/* Line 1792 of yacc.c  */
+#line 47 "syntax.y"
+    { (yyval.type_node) = reduce(ExtDef, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 6:
+/* Line 1792 of yacc.c  */
+#line 48 "syntax.y"
+    { (yyval.type_node) = reduce(ExtDef, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 7:
+/* Line 1792 of yacc.c  */
+#line 49 "syntax.y"
+    { (yyval.type_node) = reduce(ExtDef, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 8:
+/* Line 1792 of yacc.c  */
+#line 51 "syntax.y"
+    { (yyval.type_node) = reduce(ExtDecList, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 9:
+/* Line 1792 of yacc.c  */
+#line 52 "syntax.y"
+    { (yyval.type_node) = reduce(ExtDecList, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 10:
+/* Line 1792 of yacc.c  */
+#line 54 "syntax.y"
+    { (yyval.type_node) = reduce(Specifier, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 11:
+/* Line 1792 of yacc.c  */
+#line 55 "syntax.y"
+    { (yyval.type_node) = reduce(Specifier, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 12:
+/* Line 1792 of yacc.c  */
+#line 57 "syntax.y"
+    { (yyval.type_node) = reduce(StructSpecifier, (yyloc).first_line, 5 , (yyvsp[(1) - (5)].type_node), (yyvsp[(2) - (5)].type_node), (yyvsp[(3) - (5)].type_node), (yyvsp[(4) - (5)].type_node), (yyvsp[(5) - (5)].type_node));  }
+    break;
+
+  case 13:
+/* Line 1792 of yacc.c  */
+#line 58 "syntax.y"
+    { (yyval.type_node) = reduce(StructSpecifier, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 14:
+/* Line 1792 of yacc.c  */
+#line 60 "syntax.y"
+    { (yyval.type_node) = reduce(OptTag, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 16:
+/* Line 1792 of yacc.c  */
+#line 63 "syntax.y"
+    { (yyval.type_node) = reduce(Tag, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 17:
+/* Line 1792 of yacc.c  */
+#line 65 "syntax.y"
+    { (yyval.type_node) = reduce(VarDec, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 18:
+/* Line 1792 of yacc.c  */
+#line 66 "syntax.y"
+    { (yyval.type_node) = reduce(VarDec, (yyloc).first_line, 4 , (yyvsp[(1) - (4)].type_node), (yyvsp[(2) - (4)].type_node), (yyvsp[(3) - (4)].type_node), (yyvsp[(4) - (4)].type_node));  }
+    break;
+
+  case 19:
+/* Line 1792 of yacc.c  */
+#line 68 "syntax.y"
+    { (yyval.type_node) = reduce(FunDec, (yyloc).first_line, 4 , (yyvsp[(1) - (4)].type_node), (yyvsp[(2) - (4)].type_node), (yyvsp[(3) - (4)].type_node), (yyvsp[(4) - (4)].type_node));  }
+    break;
+
+  case 20:
+/* Line 1792 of yacc.c  */
+#line 69 "syntax.y"
+    { (yyval.type_node) = reduce(FunDec, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 21:
+/* Line 1792 of yacc.c  */
+#line 71 "syntax.y"
+    { (yyval.type_node) = reduce(VarList, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 22:
+/* Line 1792 of yacc.c  */
+#line 72 "syntax.y"
+    { (yyval.type_node) = reduce(VarList, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 23:
+/* Line 1792 of yacc.c  */
+#line 74 "syntax.y"
+    { (yyval.type_node) = reduce(ParamDec, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 24:
+/* Line 1792 of yacc.c  */
+#line 76 "syntax.y"
+    { (yyval.type_node) = reduce(CompSt, (yyloc).first_line, 4 , (yyvsp[(1) - (4)].type_node), (yyvsp[(2) - (4)].type_node), (yyvsp[(3) - (4)].type_node), (yyvsp[(4) - (4)].type_node));  }
+    break;
+
+  case 25:
+/* Line 1792 of yacc.c  */
+#line 78 "syntax.y"
+    { (yyval.type_node) = reduce(StmtList, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 27:
+/* Line 1792 of yacc.c  */
+#line 81 "syntax.y"
+    { (yyval.type_node) = reduce(Stmt, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 28:
+/* Line 1792 of yacc.c  */
+#line 82 "syntax.y"
+    { (yyval.type_node) = reduce(Stmt, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 29:
+/* Line 1792 of yacc.c  */
+#line 83 "syntax.y"
+    { (yyval.type_node) = reduce(Stmt, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 30:
+/* Line 1792 of yacc.c  */
+#line 84 "syntax.y"
+    { (yyval.type_node) = reduce(Stmt, (yyloc).first_line, 5 , (yyvsp[(1) - (5)].type_node), (yyvsp[(2) - (5)].type_node), (yyvsp[(3) - (5)].type_node), (yyvsp[(4) - (5)].type_node), (yyvsp[(5) - (5)].type_node));  }
+    break;
+
+  case 31:
+/* Line 1792 of yacc.c  */
+#line 85 "syntax.y"
+    { (yyval.type_node) = reduce(Stmt, (yyloc).first_line, 7 , (yyvsp[(1) - (7)].type_node), (yyvsp[(2) - (7)].type_node), (yyvsp[(3) - (7)].type_node), (yyvsp[(4) - (7)].type_node), (yyvsp[(5) - (7)].type_node), (yyvsp[(6) - (7)].type_node), (yyvsp[(7) - (7)].type_node));  }
+    break;
+
+  case 32:
+/* Line 1792 of yacc.c  */
+#line 86 "syntax.y"
+    { (yyval.type_node) = reduce(Stmt, (yyloc).first_line, 5 , (yyvsp[(1) - (5)].type_node), (yyvsp[(2) - (5)].type_node), (yyvsp[(3) - (5)].type_node), (yyvsp[(4) - (5)].type_node), (yyvsp[(5) - (5)].type_node));  }
+    break;
+
+  case 33:
+/* Line 1792 of yacc.c  */
+#line 88 "syntax.y"
+    { (yyval.type_node) = reduce(DefList, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 35:
+/* Line 1792 of yacc.c  */
+#line 91 "syntax.y"
+    { (yyval.type_node) = reduce(Def, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 36:
+/* Line 1792 of yacc.c  */
+#line 93 "syntax.y"
+    { (yyval.type_node) = reduce(DecList, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 37:
+/* Line 1792 of yacc.c  */
+#line 94 "syntax.y"
+    { (yyval.type_node) = reduce(DecList, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 38:
+/* Line 1792 of yacc.c  */
+#line 96 "syntax.y"
+    { (yyval.type_node) = reduce(Dec, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 39:
+/* Line 1792 of yacc.c  */
+#line 97 "syntax.y"
+    { (yyval.type_node) = reduce(Dec, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 40:
+/* Line 1792 of yacc.c  */
+#line 99 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 41:
+/* Line 1792 of yacc.c  */
+#line 100 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 42:
+/* Line 1792 of yacc.c  */
+#line 101 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 43:
+/* Line 1792 of yacc.c  */
+#line 102 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 44:
+/* Line 1792 of yacc.c  */
+#line 103 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 45:
+/* Line 1792 of yacc.c  */
+#line 104 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 46:
+/* Line 1792 of yacc.c  */
+#line 105 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 47:
+/* Line 1792 of yacc.c  */
+#line 106 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 48:
+/* Line 1792 of yacc.c  */
+#line 107 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 49:
+/* Line 1792 of yacc.c  */
+#line 108 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 50:
+/* Line 1792 of yacc.c  */
+#line 109 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 51:
+/* Line 1792 of yacc.c  */
+#line 110 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 4 , (yyvsp[(1) - (4)].type_node), (yyvsp[(2) - (4)].type_node), (yyvsp[(3) - (4)].type_node), (yyvsp[(4) - (4)].type_node));  }
+    break;
+
+  case 52:
+/* Line 1792 of yacc.c  */
+#line 111 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 53:
+/* Line 1792 of yacc.c  */
+#line 112 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 4 , (yyvsp[(1) - (4)].type_node), (yyvsp[(2) - (4)].type_node), (yyvsp[(3) - (4)].type_node), (yyvsp[(4) - (4)].type_node));  }
+    break;
+
+  case 54:
+/* Line 1792 of yacc.c  */
+#line 113 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 55:
+/* Line 1792 of yacc.c  */
+#line 114 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 56:
+/* Line 1792 of yacc.c  */
+#line 115 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 57:
+/* Line 1792 of yacc.c  */
+#line 116 "syntax.y"
+    { (yyval.type_node) = reduce(Exp, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 58:
+/* Line 1792 of yacc.c  */
+#line 118 "syntax.y"
+    { (yyval.type_node) = reduce(Args, (yyloc).first_line, 3 , (yyvsp[(1) - (3)].type_node), (yyvsp[(2) - (3)].type_node), (yyvsp[(3) - (3)].type_node));  }
+    break;
+
+  case 59:
+/* Line 1792 of yacc.c  */
+#line 119 "syntax.y"
+    { (yyval.type_node) = reduce(Args, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+
+/* Line 1792 of yacc.c  */
+#line 1935 "syntax.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1848,7 +2170,7 @@ yyreturn:
 
 
 /* Line 2055 of yacc.c  */
-#line 131 "syntax.y"
+#line 122 "syntax.y"
 
 
 yyerror(char* msg){

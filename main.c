@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include "tree.h"
 
 extern FILE * yydebug;
+//extern node * forest;
+//extern void printnode(node *);
 
 int main(int argc ,char** argv){
 	if (argc<=1) return 1;
@@ -12,7 +15,10 @@ int main(int argc ,char** argv){
 	}
 	yyrestart(f);
 
-//  yydebug = 1;
+  yydebug = 1;
   yyparse();
-	return 0;
+	
+  traversal(forest, 0, printnode);
+  
+  return 0;
 }

@@ -1,8 +1,9 @@
 %option yylineno
 %{
 	#include "syntax.tab.h"	
-//  #define YYDEBUG 1
-
+  #include "tree.h"
+  #define YYDEBUG 1
+  
   int cols = 0;
 	int chars = 0;
 	int words = 0;
@@ -29,48 +30,38 @@ float 		{int}\.{digit}*[1-9]
 number		{digit}+(\.{digit}+)?(E[+-]?{digit}+)?
 
 %%
-
 {break}		{yycolumn = 1;}
 {delim}		{}
-";"		{return SEMI;}
-","		{return COMMA; }
-"="		{return ASSIGNOP;  }
-">"|"<"|">="|"<="|"=="|"!="	{return RELOP;  }
-"+"		{return PLUS; }
-"-"		{return MINUS;  }
-"*"		{return STAR;  }
-"/"		{return DIV;  }
-"&&"		{return AND;  }
-"||"		{return OR;  }
-"."		{return DOT;  }
-"!"		{return NOT;  }
-"int"|"float"	{return TYPE;  }
-"("		{return LP;  }
-")"		{return RP;  }
-"["		{return LB;  }
-"]"		{return RB;  }
-"{"		{return LC;  }
-"}"		{return RC;  }
-"struct"	{return STRUCT;  }
-"return "	{return RETURN;  }
-"if"		{return IF;  }
-"else"		{return ELSE;  }
-"while"		{return WHILE;  }
+";"		{yylval.type_node = shiftTerminate(eSEMI, yylineno); return SEMI;}
+","		{yylval.type_node = shiftTerminate(eCOMMA, yylineno); return COMMA; }
+"="		{yylval.type_node = shiftTerminate(eASSIGNOP, yylineno); return ASSIGNOP;  }
+">"|"<"|">="|"<="|"=="|"!="	{yylval.type_node = shiftTerminate(eRELOP, yylineno); return RELOP;  }
+"+"		{yylval.type_node = shiftTerminate(ePLUS, yylineno); return PLUS; }
+"-"		{yylval.type_node = shiftTerminate(eMINUS, yylineno); return MINUS;  }
+"*"		{yylval.type_node = shiftTerminate(eSTAR, yylineno); return STAR;  }
+"/"		{yylval.type_node = shiftTerminate(eDIV, yylineno); return DIV;  }
+"&&"		{yylval.type_node = shiftTerminate(eAND, yylineno); return AND;  }
+"||"		{yylval.type_node = shiftTerminate(eOR, yylineno); return OR;  }
+"."		{yylval.type_node = shiftTerminate(eDOT, yylineno); return DOT;  }
+"!"		{yylval.type_node = shiftTerminate(eNOT, yylineno); return NOT;  }
+"int"|"float"	{yylval.type_node = shiftTerminate(eTYPE, yylineno); return TYPE;  }
+"("		{yylval.type_node = shiftTerminate(eLP, yylineno); return LP;  }
+")"		{yylval.type_node = shiftTerminate(eRP, yylineno); return RP;  }
+"["		{yylval.type_node = shiftTerminate(eLB, yylineno); return LB;  }
+"]"		{yylval.type_node = shiftTerminate(eRB, yylineno); return RB;  }
+"{"		{yylval.type_node = shiftTerminate(eLC, yylineno); return LC;  }
+"}"		{yylval.type_node = shiftTerminate(eRC, yylineno); return RC;  }
+"struct"	{yylval.type_node = shiftTerminate(eSTRUCT, yylineno); return STRUCT;  }
+"return "	{yylval.type_node = shiftTerminate(eRETURN, yylineno); return RETURN;  }
+"if"		{yylval.type_node = shiftTerminate(eIF, yylineno); return IF;  }
+"else"		{yylval.type_node = shiftTerminate(eELSE, yylineno); return ELSE;  }
+"while"		{yylval.type_node = shiftTerminate(eWHILE, yylineno); return WHILE;  }
 {wrongoct}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
-{oct}		{return OCT;}
 {wronghex}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
-{hex}		{return HEX;}
-{int}		{
-			yylval.type_int = atoi(yytext);
-			return  INT;		
-		}
-{float}		{
-			yylval.type_float = atof(yytext);
-			return FLOAT;
-		}
+{int}		{yylval.type_node = shiftInt((int)atoi(yytext), yylineno); return  INT; }
+{float}		{yylval.type_node = shiftFloat((float)atof(yytext), yylineno);	return FLOAT; }
 {wrongid}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
-{id}		{return ID;}
-{number}	{return NUM;}
+{id}		{yylval.type_node = shiftId(yytext, yylineno);	return ID;}
 .		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
 
 %%

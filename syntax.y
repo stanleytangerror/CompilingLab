@@ -1,27 +1,30 @@
 %{
-	#include<stdio.h>
+	#include <stdio.h>
   #include "lex.yy.c"
 %}
 %locations
+
 /* declared types*/
 %union{
-	int type_int;
-	float type_float;
-	double type_double;
+	struct node * type_node;
 }
 
 /* declared tokens*/
-%token <type_int> INT
-%token <type_float> FLOAT
-%token ID OCT HEX NUM
-%token SEMI COMMA ASSIGNOP RELOP
-%token PLUS MINUS STAR DIV
-%token AND OR DOT NOT TYPE
-%token LP RP LB RB LC RC
-%token STRUCT RETURN IF ELSE WHILE
+%token <type_node> INT
+%token <type_node> FLOAT
+%token <type_node> ID OCT HEX NUM
+%token <type_node> SEMI COMMA ASSIGNOP RELOP
+%token <type_node> PLUS MINUS STAR DIV
+%token <type_node> AND OR DOT NOT TYPE
+%token <type_node> LP RP LB RB LC RC
+%token <type_node> STRUCT RETURN IF ELSE WHILE
 
 /* declared non-terminals */
-//%type <type_double> Exp Factor Term
+%type <type_node> Program ExtDefList ExtDef ExtDecList
+%type <type_node> Specifier StructSpecifier OptTag Tag
+%type <type_node> VarDec FunDec VarList ParamDec
+%type <type_node> CompSt StmtList Stmt Args
+%type <type_node> DefList Def DecList Dec Exp
 
 %right ASSIGNOP
 %right NOT
@@ -36,98 +39,86 @@
 %nonassoc ELSE
 
 %%
-Program		: ExtDefList
+Program		: ExtDefList  { forest = reduce(Program, @$.first_line, 1 , $1);  }
 		;
-ExtDefList	: ExtDef ExtDefList
+ExtDefList	: ExtDef ExtDefList  { $$ = reduce(ExtDefList, @$.first_line, 2 , $1, $2);  }
 		| /*empty*/
 		;
-ExtDef		: Specifier ExtDecList SEMI
-		| Specifier SEMI
-		| Specifier FunDec CompSt
+ExtDef		: Specifier ExtDecList SEMI  { $$ = reduce(ExtDef, @$.first_line, 3 , $1, $2, $3);  }
+		| Specifier SEMI  { $$ = reduce(ExtDef, @$.first_line, 2 , $1, $2);  }
+		| Specifier FunDec CompSt  { $$ = reduce(ExtDef, @$.first_line, 3 , $1, $2, $3);  }
 		;
-ExtDecList 	: VarDec
-		| VarDec COMMA ExtDecList
+ExtDecList 	: VarDec  { $$ = reduce(ExtDecList, @$.first_line, 1 , $1);  }
+		| VarDec COMMA ExtDecList  { $$ = reduce(ExtDecList, @$.first_line, 3 , $1, $2, $3);  }
 		;
-Specifier	: TYPE
-		| StructSpecifier
+Specifier	: TYPE  { $$ = reduce(Specifier, @$.first_line, 1 , $1);  }
+		| StructSpecifier  { $$ = reduce(Specifier, @$.first_line, 1 , $1);  }
 		;
-StructSpecifier : STRUCT OptTag LC DefList RC
-		| STRUCT Tag
+StructSpecifier : STRUCT OptTag LC DefList RC  { $$ = reduce(StructSpecifier, @$.first_line, 5 , $1, $2, $3, $4, $5);  }
+		| STRUCT Tag  { $$ = reduce(StructSpecifier, @$.first_line, 2 , $1, $2);  }
 		;
-OptTag		: ID
+OptTag		: ID  { $$ = reduce(OptTag, @$.first_line, 1 , $1);  }
 		| /*empty*/
 		;
-Tag		: ID
+Tag		: ID  { $$ = reduce(Tag, @$.first_line, 1 , $1);  }
 		;
-VarDec		: ID
-		| VarDec LB INT RB
+VarDec		: ID  { $$ = reduce(VarDec, @$.first_line, 1 , $1);  }
+		| VarDec LB INT RB  { $$ = reduce(VarDec, @$.first_line, 4 , $1, $2, $3, $4);  }
 		;
-FunDec		: ID LP VarList RP
-		| ID LP RP
+FunDec		: ID LP VarList RP  { $$ = reduce(FunDec, @$.first_line, 4 , $1, $2, $3, $4);  }
+		| ID LP RP  { $$ = reduce(FunDec, @$.first_line, 3 , $1, $2, $3);  }
 		;
-VarList		: ParamDec COMMA VarList
-		| ParamDec
+VarList		: ParamDec COMMA VarList  { $$ = reduce(VarList, @$.first_line, 3 , $1, $2, $3);  }
+		| ParamDec  { $$ = reduce(VarList, @$.first_line, 1 , $1);  }
 		;
-ParamDec	: Specifier VarDec
+ParamDec	: Specifier VarDec  { $$ = reduce(ParamDec, @$.first_line, 2 , $1, $2);  }
 		;
-CompSt 		: LC DefList StmtList RC
+CompSt 		: LC DefList StmtList RC  { $$ = reduce(CompSt, @$.first_line, 4 , $1, $2, $3, $4);  }
 		;
-StmtList	: Stmt StmtList
+StmtList	: Stmt StmtList  { $$ = reduce(StmtList, @$.first_line, 2 , $1, $2);  }
 		| /*empty*/
 		;
-Stmt 		: Exp SEMI
-		| CompSt
-		| RETURN Exp SEMI
-		| IF LP Exp RP Stmt   %prec LOWER_THAN_ELSE
-		| IF LP Exp RP Stmt ELSE Stmt
-		| WHILE LP Exp RP Stmt
+Stmt 		: Exp SEMI  { $$ = reduce(Stmt, @$.first_line, 2 , $1, $2);  }
+		| CompSt  { $$ = reduce(Stmt, @$.first_line, 1 , $1);  }
+		| RETURN Exp SEMI  { $$ = reduce(Stmt, @$.first_line, 3 , $1, $2, $3);  }
+		| IF LP Exp RP Stmt   %prec LOWER_THAN_ELSE  { $$ = reduce(Stmt, @$.first_line, 5 , $1, $2, $3, $4, $5);  }
+		| IF LP Exp RP Stmt ELSE Stmt  { $$ = reduce(Stmt, @$.first_line, 7 , $1, $2, $3, $4, $5, $6, $7);  }
+		| WHILE LP Exp RP Stmt  { $$ = reduce(Stmt, @$.first_line, 5 , $1, $2, $3, $4, $5);  }
 		;
-DefList		: Def DefList
+DefList		: Def DefList  { $$ = reduce(DefList, @$.first_line, 2 , $1, $2);  }
 		| /*empty*/
 		;
-Def 		: Specifier DecList SEMI
+Def 		: Specifier DecList SEMI  { $$ = reduce(Def, @$.first_line, 3 , $1, $2, $3);  }
 		;
-DecList 	: Dec
-		| Dec COMMA DecList
+DecList 	: Dec  { $$ = reduce(DecList, @$.first_line, 1 , $1);  }
+		| Dec COMMA DecList  { $$ = reduce(DecList, @$.first_line, 3 , $1, $2, $3);  }
 		;
-Dec 		: VarDec
-		| VarDec ASSIGNOP Exp
+Dec 		: VarDec  { $$ = reduce(Dec, @$.first_line, 1 , $1);  }
+		| VarDec ASSIGNOP Exp  { $$ = reduce(Dec, @$.first_line, 3 , $1, $2, $3);  }
 		;
-Exp 		: Exp ASSIGNOP Exp
-		| Exp AND Exp
-		| Exp OR Exp
-		| Exp RELOP Exp
-		| Exp PLUS Exp
-		| Exp MINUS Exp
-		| Exp STAR Exp
-		| Exp DIV Exp
-		| LP Exp RP
-		| MINUS Exp
-		| NOT Exp
-		| ID LP Args RP
-		| ID LP RP
-		| Exp LB Exp RB
-		| Exp DOT ID
-		| ID
-		| INT
-		| FLOAT
+Exp 		: Exp ASSIGNOP Exp  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| Exp AND Exp  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| Exp OR Exp  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| Exp RELOP Exp  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| Exp PLUS Exp  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| Exp MINUS Exp  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| Exp STAR Exp  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| Exp DIV Exp  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| LP Exp RP  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| MINUS Exp  { $$ = reduce(Exp, @$.first_line, 2 , $1, $2);  }
+		| NOT Exp  { $$ = reduce(Exp, @$.first_line, 2 , $1, $2);  }
+		| ID LP Args RP  { $$ = reduce(Exp, @$.first_line, 4 , $1, $2, $3, $4);  }
+		| ID LP RP  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| Exp LB Exp RB  { $$ = reduce(Exp, @$.first_line, 4 , $1, $2, $3, $4);  }
+		| Exp DOT ID  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
+		| ID  { $$ = reduce(Exp, @$.first_line, 1 , $1);  }
+		| INT  { $$ = reduce(Exp, @$.first_line, 1 , $1);  }
+		| FLOAT  { $$ = reduce(Exp, @$.first_line, 1 , $1);  }
 		;
-Args 		: Exp COMMA Args
-		| Exp
+Args 		: Exp COMMA Args  { $$ = reduce(Args, @$.first_line, 3 , $1, $2, $3);  }
+		| Exp  { $$ = reduce(Args, @$.first_line, 1 , $1);  }
 		;
-	
-/*Exp	:Factor
-	| Exp ADD Factor {$$ = $1 + $3;}
-	| Exp SUB Factor {$$ = $1 - $3;}
-	;
-Factor	: Term
-	| Factor MUL Term {$$ = $1 * $3;}
-	| Factor DIV Term {$$ = $1 / $3;}
-	;
-Term	: INT {$$ = $1;}
-	| FLOAT {$$ = $1;}
-	;
-*/
+
 %%
 
 yyerror(char* msg){
