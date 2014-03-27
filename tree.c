@@ -7,7 +7,7 @@ const char * stringNonTerminate [] = {
  "Specifier", "StructSpecifier", "OptTag", "Tag",
  "VarDec", "FunDec", "VarList", "ParamDec",
  "CompSt", "StmtList", "Stmt", "Args",
- "DefList", "Def", "DecList", "Dec", "Exp"
+ "DefList", "Def", "DecList", "Dec", "Exp", "Empty"
  };
 
 const char * stringTerminate [] = {
@@ -27,7 +27,7 @@ const char * stringRelopValue [] = {
 };
 
 const char * stringTypeValue [] = {
-  "INT", "FLOAT"
+  "int", "float"
 };
 
 
@@ -79,7 +79,7 @@ void traversal( node * subtree, int level, void (*func)(node *, int) ) {
   if (subtree != NULL) {
       (* func)(subtree, level);
       traversal(subtree->child, level + 1, func);
-      traversal(subtree->sibling, level + 1, func);
+      traversal(subtree->sibling, level, func);
   }
 }
 
@@ -110,20 +110,36 @@ node * shiftFloat(float value, int lineno  ) {
   return p;
 }
 
-node * shiftType(enum TypeValue value, int lineno  ) {
+node * shiftType(char * text, int lineno  ) {
   node * p = newnode();
   p->label = NODE_TYPE;
   p->ntype.type_semterm = eTYPE;
-  p->nvalue.value_type = value;
+  if (strncmp(text, "int", MAXID) == 0) {
+    p->nvalue.value_type = eINT;
+  } else if (strncmp(text, "float", MAXID) == 0 ) {
+    p->nvalue.value_type = eFLOAT;
+  }
   p->lineno = lineno;
   return p;
 }
 
-node * shiftRelop(enum RelopValue value, int lineno  ) {
+node * shiftRelop(char * text, int lineno  ) {
   node * p = newnode();
   p->label = NODE_RELOP;
   p->ntype.type_semterm = eRELOP;
-  p->nvalue.value_relop = value;
+  if (strncmp(text, "<", MAXID) == 0) {
+    p->nvalue.value_type = eLT;
+  } else if (strncmp(text, "<=", MAXID) == 0 ) {
+    p->nvalue.value_type = eLE;
+  } else if (strncmp(text, ">", MAXID) == 0 ) {
+    p->nvalue.value_type = eGT;
+  } else if (strncmp(text, ">=", MAXID) == 0 ) {
+    p->nvalue.value_type = eGE;
+  } else if (strncmp(text, "==", MAXID) == 0 ) {
+    p->nvalue.value_type = eEQ;
+  } else if (strncmp(text, "!=", MAXID) == 0 ) {
+    p->nvalue.value_type = eNE;
+  }
   p->lineno = lineno;
   return p;
 }
@@ -157,20 +173,33 @@ node * reduce(enum NonTerminate nonterm, int lineno, int num, ...) {
   }
   va_end(argptr);
 
+  printf("\nreduce ----- start --\n");
+  traversal(upper, 0, printnode);
+  printf("reduce ----- end --\n\n");
   return upper;
+}
+
+void printinfo(node * p, int indent) {
+    printf("%d  ", p->label);
+  
 }
 
 void printnode(node * p, int indent) {
   if (p == NULL) {
     return;
   }
-  while (indent > 0) {
-    printf("  ");
-    indent --;
+
+  if (p->label != NODE_NONTERMINATE || p->ntype.type_nonterm != Empty) {
+    while (indent > 0) {
+      printf("  ");
+      indent --;
+    }
   }
   switch (p->label) {
     case NODE_NONTERMINATE:
-      printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
+      if (p->ntype.type_nonterm != Empty) {
+        printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
+      }
       break;
     case NODE_INT:
       printf("INT: %d\n", p->nvalue.value_int);
@@ -197,13 +226,22 @@ void printnode(node * p, int indent) {
   return;
 }
 
-
 /*int main () {
-  node * sub0 = reduce(
+
+  node * sub0 = reduce(2, 2, 
   shiftInt(4, 3),
   shiftInt(5, 3)
     );
   
+  node * sub1 = reduce(3, 2, 
+  shiftInt(6, 3),
+  shiftInt(7, 3),
+  shiftInt(8, 3)
+    );
+
+  forest = reduce( 1, 1, 2, sub0, sub1);
+*/
+/*
   shiftInt(1, 1);
   shiftInt(1, 1);
   shiftInt(1, 1);
@@ -229,7 +267,9 @@ void printnode(node * p, int indent) {
   insert(subtree2, newnode(10, 3));
 
   merge(forest->child, 1, subtree2);
-
-  traversal(forest, printnode);
+*/
+/*  traversal(forest, 0, printnode);
+  
   return 0;
 }*/
+

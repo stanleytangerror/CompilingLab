@@ -373,8 +373,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 34
-#define YY_END_OF_BUFFER 35
+#define YY_NUM_RULES 36
+#define YY_END_OF_BUFFER 37
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -384,15 +384,15 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[87] =
     {   0,
-        0,    0,   35,   33,    2,    1,   14,   33,   16,   17,
-        9,    7,    4,    8,   13,   10,   29,   29,    3,    6,
-        5,    6,   32,   18,   19,   32,   32,   32,   32,   32,
-       32,   20,   33,   21,    6,   11,    0,    0,   27,   31,
-       31,   29,   32,   32,   32,   24,   32,   32,   32,   32,
-       12,    0,   30,   27,   27,   27,   31,   31,   31,   31,
-       28,   32,   32,   15,   32,   32,   32,   27,   27,   28,
-       28,   28,   28,   25,   32,   32,   32,   32,   28,   32,
-       32,   26,   32,   22,   23,    0
+        0,    0,   37,   35,    2,    1,   14,   35,   16,   17,
+        9,    7,    4,    8,   13,   10,   31,   31,    3,    6,
+        5,    6,   34,   18,   19,   34,   34,   34,   34,   34,
+       34,   20,   35,   21,    6,   11,    0,   30,   27,   33,
+       33,   31,   34,   34,   34,   24,   34,   34,   34,   34,
+       12,    0,   32,   27,   27,   27,   33,   33,   29,   29,
+       28,   34,   34,   15,   34,   34,   34,   27,   27,   28,
+       28,   28,   28,   25,   34,   34,   34,   34,   28,   34,
+       34,   26,   34,   22,   23,    0
     } ;
 
 static yyconst flex_int32_t yy_ec[256] =
@@ -533,10 +533,10 @@ static yyconst flex_int16_t yy_chk[266] =
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static yyconst flex_int32_t yy_rule_can_match_eol[35] =
+static yyconst flex_int32_t yy_rule_can_match_eol[37] =
     {   0,
 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     };
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     };
 
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
@@ -873,7 +873,7 @@ YY_RULE_SETUP
 case 6:
 YY_RULE_SETUP
 #line 38 "lexical.l"
-{yylval.type_node = shiftTerminate(eRELOP, yylineno); return RELOP;  }
+{yylval.type_node = shiftRelop(yytext, yylineno); return RELOP;  }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
@@ -918,7 +918,7 @@ YY_RULE_SETUP
 case 15:
 YY_RULE_SETUP
 #line 47 "lexical.l"
-{yylval.type_node = shiftTerminate(eTYPE, yylineno); return TYPE;  }
+{yylval.type_node = shiftType(yytext, yylineno); return TYPE;  }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
@@ -988,22 +988,22 @@ YY_RULE_SETUP
 case 29:
 YY_RULE_SETUP
 #line 61 "lexical.l"
-{yylval.type_node = shiftInt((int)atoi(yytext), yylineno); return  INT; }
+{yylval.type_node = shiftInt((int)strtol(yytext, NULL, 16), yylineno); return  INT; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 62 "lexical.l"
-{yylval.type_node = shiftFloat((float)atof(yytext), yylineno);	return FLOAT; }
+{yylval.type_node = shiftInt((int)strtol(yytext, NULL, 8), yylineno); return  INT; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 63 "lexical.l"
-{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
+{yylval.type_node = shiftInt((int)atoi(yytext), yylineno); return  INT; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 64 "lexical.l"
-{yylval.type_node = shiftId(yytext, yylineno);	return ID;}
+{yylval.type_node = shiftFloat((float)atof(yytext), yylineno);	return FLOAT; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
@@ -1012,10 +1012,20 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
+#line 66 "lexical.l"
+{yylval.type_node = shiftId(yytext, yylineno);	return ID;}
+	YY_BREAK
+case 35:
+YY_RULE_SETUP
 #line 67 "lexical.l"
+{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
+	YY_BREAK
+case 36:
+YY_RULE_SETUP
+#line 69 "lexical.l"
 ECHO;
 	YY_BREAK
-#line 1019 "lex.yy.c"
+#line 1029 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2021,7 +2031,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 67 "lexical.l"
+#line 69 "lexical.l"
 
 
 

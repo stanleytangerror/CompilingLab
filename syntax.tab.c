@@ -1617,6 +1617,12 @@ yyreduce:
     { (yyval.type_node) = reduce(ExtDefList, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
     break;
 
+  case 4:
+/* Line 1792 of yacc.c  */
+#line 45 "syntax.y"
+    { (yyval.type_node) = reduce(Empty, (yyloc).first_line, 0);  }
+    break;
+
   case 5:
 /* Line 1792 of yacc.c  */
 #line 47 "syntax.y"
@@ -1675,6 +1681,12 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 60 "syntax.y"
     { (yyval.type_node) = reduce(OptTag, (yyloc).first_line, 1 , (yyvsp[(1) - (1)].type_node));  }
+    break;
+
+  case 15:
+/* Line 1792 of yacc.c  */
+#line 61 "syntax.y"
+    { (yyval.type_node) = reduce(Empty, (yyloc).first_line, 0);  }
     break;
 
   case 16:
@@ -1737,6 +1749,12 @@ yyreduce:
     { (yyval.type_node) = reduce(StmtList, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
     break;
 
+  case 26:
+/* Line 1792 of yacc.c  */
+#line 79 "syntax.y"
+    { (yyval.type_node) = reduce(Empty, (yyloc).first_line, 0);  }
+    break;
+
   case 27:
 /* Line 1792 of yacc.c  */
 #line 81 "syntax.y"
@@ -1777,6 +1795,12 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 88 "syntax.y"
     { (yyval.type_node) = reduce(DefList, (yyloc).first_line, 2 , (yyvsp[(1) - (2)].type_node), (yyvsp[(2) - (2)].type_node));  }
+    break;
+
+  case 34:
+/* Line 1792 of yacc.c  */
+#line 89 "syntax.y"
+    { (yyval.type_node) = reduce(Empty, (yyloc).first_line, 0);  }
     break;
 
   case 35:
@@ -1931,7 +1955,7 @@ yyreduce:
 
 
 /* Line 1792 of yacc.c  */
-#line 1935 "syntax.tab.c"
+#line 1959 "syntax.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

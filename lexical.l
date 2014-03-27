@@ -35,7 +35,7 @@ number		{digit}+(\.{digit}+)?(E[+-]?{digit}+)?
 ";"		{yylval.type_node = shiftTerminate(eSEMI, yylineno); return SEMI;}
 ","		{yylval.type_node = shiftTerminate(eCOMMA, yylineno); return COMMA; }
 "="		{yylval.type_node = shiftTerminate(eASSIGNOP, yylineno); return ASSIGNOP;  }
-">"|"<"|">="|"<="|"=="|"!="	{yylval.type_node = shiftTerminate(eRELOP, yylineno); return RELOP;  }
+">"|"<"|">="|"<="|"=="|"!="	{yylval.type_node = shiftRelop(yytext, yylineno); return RELOP;  }
 "+"		{yylval.type_node = shiftTerminate(ePLUS, yylineno); return PLUS; }
 "-"		{yylval.type_node = shiftTerminate(eMINUS, yylineno); return MINUS;  }
 "*"		{yylval.type_node = shiftTerminate(eSTAR, yylineno); return STAR;  }
@@ -44,7 +44,7 @@ number		{digit}+(\.{digit}+)?(E[+-]?{digit}+)?
 "||"		{yylval.type_node = shiftTerminate(eOR, yylineno); return OR;  }
 "."		{yylval.type_node = shiftTerminate(eDOT, yylineno); return DOT;  }
 "!"		{yylval.type_node = shiftTerminate(eNOT, yylineno); return NOT;  }
-"int"|"float"	{yylval.type_node = shiftTerminate(eTYPE, yylineno); return TYPE;  }
+"int"|"float"	{yylval.type_node = shiftType(yytext, yylineno); return TYPE;  }
 "("		{yylval.type_node = shiftTerminate(eLP, yylineno); return LP;  }
 ")"		{yylval.type_node = shiftTerminate(eRP, yylineno); return RP;  }
 "["		{yylval.type_node = shiftTerminate(eLB, yylineno); return LB;  }
@@ -58,6 +58,8 @@ number		{digit}+(\.{digit}+)?(E[+-]?{digit}+)?
 "while"		{yylval.type_node = shiftTerminate(eWHILE, yylineno); return WHILE;  }
 {wrongoct}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
 {wronghex}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
+{hex}		{yylval.type_node = shiftInt((int)strtol(yytext, NULL, 16), yylineno); return  INT; }
+{oct}		{yylval.type_node = shiftInt((int)strtol(yytext, NULL, 8), yylineno); return  INT; }
 {int}		{yylval.type_node = shiftInt((int)atoi(yytext), yylineno); return  INT; }
 {float}		{yylval.type_node = shiftFloat((float)atof(yytext), yylineno);	return FLOAT; }
 {wrongid}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 

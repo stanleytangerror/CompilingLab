@@ -22,7 +22,7 @@ enum NonTerminate {
  Specifier, StructSpecifier, OptTag, Tag,
  VarDec, FunDec, VarList, ParamDec,
  CompSt, StmtList, Stmt, Args,
- DefList, Def, DecList, Dec, Exp
+ DefList, Def, DecList, Dec, Exp, Empty
  };
 
 enum Terminate {
@@ -86,14 +86,16 @@ node * shiftInt(int value, int lineno  );
 
 node * shiftFloat(float value, int lineno  );
 
-node * shiftType(enum TypeValue value, int lineno  );
+node * shiftType(char * text, int lineno  );
 
-node * shiftRelop(enum RelopValue value, int lineno  );
+node * shiftRelop(char * text, int lineno  );
 
 node * shiftId( char * value, int lineno  );
 
 node * reduce(enum NonTerminate nonterm, int lineno, int num, ...);
 
-void printnode(node * p, int indent);
+void printinfo(node * p, int indent);
+
+  void printnode(node * p, int indent);
 
 #endif

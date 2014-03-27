@@ -42,7 +42,7 @@
 Program		: ExtDefList  { forest = reduce(Program, @$.first_line, 1 , $1);  }
 		;
 ExtDefList	: ExtDef ExtDefList  { $$ = reduce(ExtDefList, @$.first_line, 2 , $1, $2);  }
-		| /*empty*/
+		| /*empty*/ { $$ = reduce(Empty, @$.first_line, 0);  }
 		;
 ExtDef		: Specifier ExtDecList SEMI  { $$ = reduce(ExtDef, @$.first_line, 3 , $1, $2, $3);  }
 		| Specifier SEMI  { $$ = reduce(ExtDef, @$.first_line, 2 , $1, $2);  }
@@ -58,7 +58,7 @@ StructSpecifier : STRUCT OptTag LC DefList RC  { $$ = reduce(StructSpecifier, @$
 		| STRUCT Tag  { $$ = reduce(StructSpecifier, @$.first_line, 2 , $1, $2);  }
 		;
 OptTag		: ID  { $$ = reduce(OptTag, @$.first_line, 1 , $1);  }
-		| /*empty*/
+		| /*empty*/ { $$ = reduce(Empty, @$.first_line, 0);  }
 		;
 Tag		: ID  { $$ = reduce(Tag, @$.first_line, 1 , $1);  }
 		;
@@ -76,7 +76,7 @@ ParamDec	: Specifier VarDec  { $$ = reduce(ParamDec, @$.first_line, 2 , $1, $2);
 CompSt 		: LC DefList StmtList RC  { $$ = reduce(CompSt, @$.first_line, 4 , $1, $2, $3, $4);  }
 		;
 StmtList	: Stmt StmtList  { $$ = reduce(StmtList, @$.first_line, 2 , $1, $2);  }
-		| /*empty*/
+		| /*empty*/ { $$ = reduce(Empty, @$.first_line, 0);  }
 		;
 Stmt 		: Exp SEMI  { $$ = reduce(Stmt, @$.first_line, 2 , $1, $2);  }
 		| CompSt  { $$ = reduce(Stmt, @$.first_line, 1 , $1);  }
@@ -86,7 +86,7 @@ Stmt 		: Exp SEMI  { $$ = reduce(Stmt, @$.first_line, 2 , $1, $2);  }
 		| WHILE LP Exp RP Stmt  { $$ = reduce(Stmt, @$.first_line, 5 , $1, $2, $3, $4, $5);  }
 		;
 DefList		: Def DefList  { $$ = reduce(DefList, @$.first_line, 2 , $1, $2);  }
-		| /*empty*/
+		| /*empty*/ { $$ = reduce(Empty, @$.first_line, 0);  }
 		;
 Def 		: Specifier DecList SEMI  { $$ = reduce(Def, @$.first_line, 3 , $1, $2, $3);  }
 		;
