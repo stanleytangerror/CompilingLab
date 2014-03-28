@@ -37,6 +37,7 @@
 %left DOT
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
+%nonassoc ERROR
 
 %%
 Program		: ExtDefList  { forest = reduce(Program, @$.first_line, 1 , $1);  }
@@ -47,7 +48,8 @@ ExtDefList	: ExtDef ExtDefList  { $$ = reduce(ExtDefList, @$.first_line, 2 , $1,
 ExtDef		: Specifier ExtDecList SEMI  { $$ = reduce(ExtDef, @$.first_line, 3 , $1, $2, $3);  }
 		| Specifier SEMI  { $$ = reduce(ExtDef, @$.first_line, 2 , $1, $2);  }
 		| Specifier FunDec CompSt  { $$ = reduce(ExtDef, @$.first_line, 3 , $1, $2, $3);  }
-		;
+		| error SEMI %prec ERROR  { yyerrok; } 
+    ;
 ExtDecList 	: VarDec  { $$ = reduce(ExtDecList, @$.first_line, 1 , $1);  }
 		| VarDec COMMA ExtDecList  { $$ = reduce(ExtDecList, @$.first_line, 3 , $1, $2, $3);  }
 		;
@@ -67,14 +69,16 @@ VarDec		: ID  { $$ = reduce(VarDec, @$.first_line, 1 , $1);  }
 		;
 FunDec		: ID LP VarList RP  { $$ = reduce(FunDec, @$.first_line, 4 , $1, $2, $3, $4);  }
 		| ID LP RP  { $$ = reduce(FunDec, @$.first_line, 3 , $1, $2, $3);  }
-		;
+		| error RP  %prec ERROR  { yyerrok; }
+    ;
 VarList		: ParamDec COMMA VarList  { $$ = reduce(VarList, @$.first_line, 3 , $1, $2, $3);  }
 		| ParamDec  { $$ = reduce(VarList, @$.first_line, 1 , $1);  }
 		;
 ParamDec	: Specifier VarDec  { $$ = reduce(ParamDec, @$.first_line, 2 , $1, $2);  }
 		;
 CompSt 		: LC DefList StmtList RC  { $$ = reduce(CompSt, @$.first_line, 4 , $1, $2, $3, $4);  }
-		;
+		| error RC  %prec ERROR  { yyerrok; }
+    ;
 StmtList	: Stmt StmtList  { $$ = reduce(StmtList, @$.first_line, 2 , $1, $2);  }
 		| /*empty*/ { $$ = reduce(Empty, @$.first_line, 0);  }
 		;
@@ -84,12 +88,14 @@ Stmt 		: Exp SEMI  { $$ = reduce(Stmt, @$.first_line, 2 , $1, $2);  }
 		| IF LP Exp RP Stmt   %prec LOWER_THAN_ELSE  { $$ = reduce(Stmt, @$.first_line, 5 , $1, $2, $3, $4, $5);  }
 		| IF LP Exp RP Stmt ELSE Stmt  { $$ = reduce(Stmt, @$.first_line, 7 , $1, $2, $3, $4, $5, $6, $7);  }
 		| WHILE LP Exp RP Stmt  { $$ = reduce(Stmt, @$.first_line, 5 , $1, $2, $3, $4, $5);  }
-		;
+		| error SEMI  %prec ERROR  { yyerrok; }
+    ;
 DefList		: Def DefList  { $$ = reduce(DefList, @$.first_line, 2 , $1, $2);  }
 		| /*empty*/ { $$ = reduce(Empty, @$.first_line, 0);  }
 		;
-Def 		: Specifier DecList SEMI  { $$ = reduce(Def, @$.first_line, 3 , $1, $2, $3);  }
-		;
+Def : Specifier DecList SEMI  { $$ = reduce(Def, @$.first_line, 3 , $1, $2, $3);  }
+		| error SEMI  %prec ERROR  { yyerrok; }
+    ;
 DecList 	: Dec  { $$ = reduce(DecList, @$.first_line, 1 , $1);  }
 		| Dec COMMA DecList  { $$ = reduce(DecList, @$.first_line, 3 , $1, $2, $3);  }
 		;
@@ -114,7 +120,9 @@ Exp 		: Exp ASSIGNOP Exp  { $$ = reduce(Exp, @$.first_line, 3 , $1, $2, $3);  }
 		| ID  { $$ = reduce(Exp, @$.first_line, 1 , $1);  }
 		| INT  { $$ = reduce(Exp, @$.first_line, 1 , $1);  }
 		| FLOAT  { $$ = reduce(Exp, @$.first_line, 1 , $1);  }
-		;
+		| LP error  %prec ERROR  { yyerrok; }
+    | Exp LB error RB  %prec ERROR  { yyerrok; }
+    ;
 Args 		: Exp COMMA Args  { $$ = reduce(Args, @$.first_line, 3 , $1, $2, $3);  }
 		| Exp  { $$ = reduce(Args, @$.first_line, 1 , $1);  }
 		;
@@ -123,4 +131,5 @@ Args 		: Exp COMMA Args  { $$ = reduce(Args, @$.first_line, 3 , $1, $2, $3);  }
 
 yyerror(char* msg){
 	fprintf(stderr, "Error type B at line %d: Syntax error\n" , yylineno);
+  compile = false;
 }
