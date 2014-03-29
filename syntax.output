@@ -5,10 +5,6 @@ Terminals unused in grammar
    NUM
 
 
-State 28 conflicts: 1 shift/reduce
-State 33 conflicts: 1 shift/reduce
-
-
 Grammar
 
     0 $accept: Program $end
@@ -93,7 +89,7 @@ Grammar
    59    | ID
    60    | INT
    61    | FLOAT
-   62    | LP error
+   62    | LP error RP
    63    | Exp LB error RB
 
    64 Args: Exp COMMA Args
@@ -124,7 +120,7 @@ DOT (274) 58
 NOT (275) 54
 TYPE (276) 10
 LP (277) 19 20 32 33 34 52 55 56 62
-RP (278) 19 20 21 32 33 34 52 55 56
+RP (278) 19 20 21 32 33 34 52 55 56 62
 LB (279) 18 57 63
 RB (280) 18 57 63
 LC (281) 12 25
@@ -135,7 +131,7 @@ IF (285) 32 33
 ELSE (286) 33
 WHILE (287) 34
 LOWER_THAN_ELSE (288)
-ERROR (289)
+LOWER_THAN_ERROR (289)
 
 
 Nonterminals, with rules where they appear
@@ -459,7 +455,6 @@ State 28
     TYPE    shift, and go to state 2
     STRUCT  shift, and go to state 3
 
-    error   [reduce using rule 37 (DefList)]
     INT     reduce using rule 37 (DefList)
     FLOAT   reduce using rule 37 (DefList)
     ID      reduce using rule 37 (DefList)
@@ -518,7 +513,6 @@ State 33
     TYPE    shift, and go to state 2
     STRUCT  shift, and go to state 3
 
-    error   [reduce using rule 37 (DefList)]
     INT     reduce using rule 37 (DefList)
     FLOAT   reduce using rule 37 (DefList)
     ID      reduce using rule 37 (DefList)
@@ -774,7 +768,7 @@ State 58
 State 59
 
    52 Exp: LP . Exp RP
-   62    | LP . error
+   62    | LP . error RP
 
     error  shift, and go to state 75
     INT    shift, and go to state 54
@@ -1001,9 +995,9 @@ State 74
 
 State 75
 
-   62 Exp: LP error .
+   62 Exp: LP error . RP
 
-    $default  reduce using rule 62 (Exp)
+    RP  shift, and go to state 98
 
 
 State 76
@@ -1030,7 +1024,7 @@ State 76
     AND       shift, and go to state 89
     OR        shift, and go to state 90
     DOT       shift, and go to state 91
-    RP        shift, and go to state 98
+    RP        shift, and go to state 99
     LB        shift, and go to state 92
 
 
@@ -1049,7 +1043,7 @@ State 77
    58    | Exp . DOT ID
    63    | Exp . LB error RB
 
-    SEMI      shift, and go to state 99
+    SEMI      shift, and go to state 100
     ASSIGNOP  shift, and go to state 83
     RELOP     shift, and go to state 84
     PLUS      shift, and go to state 85
@@ -1074,7 +1068,7 @@ State 78
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 100
+    Exp  go to state 101
 
 
 State 79
@@ -1088,7 +1082,7 @@ State 79
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 101
+    Exp  go to state 102
 
 
 State 80
@@ -1123,7 +1117,7 @@ State 83
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 102
+    Exp  go to state 103
 
 
 State 84
@@ -1137,7 +1131,7 @@ State 84
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 103
+    Exp  go to state 104
 
 
 State 85
@@ -1151,7 +1145,7 @@ State 85
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 104
+    Exp  go to state 105
 
 
 State 86
@@ -1165,7 +1159,7 @@ State 86
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 105
+    Exp  go to state 106
 
 
 State 87
@@ -1179,7 +1173,7 @@ State 87
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 106
+    Exp  go to state 107
 
 
 State 88
@@ -1193,7 +1187,7 @@ State 88
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 107
+    Exp  go to state 108
 
 
 State 89
@@ -1207,7 +1201,7 @@ State 89
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 108
+    Exp  go to state 109
 
 
 State 90
@@ -1221,14 +1215,14 @@ State 90
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 109
+    Exp  go to state 110
 
 
 State 91
 
    58 Exp: Exp DOT . ID
 
-    ID  shift, and go to state 110
+    ID  shift, and go to state 111
 
 
 State 92
@@ -1236,7 +1230,7 @@ State 92
    57 Exp: Exp LB . Exp RB
    63    | Exp LB . error RB
 
-    error  shift, and go to state 111
+    error  shift, and go to state 112
     INT    shift, and go to state 54
     FLOAT  shift, and go to state 55
     ID     shift, and go to state 56
@@ -1244,7 +1238,7 @@ State 92
     NOT    shift, and go to state 58
     LP     shift, and go to state 59
 
-    Exp  go to state 112
+    Exp  go to state 113
 
 
 State 93
@@ -1306,7 +1300,7 @@ State 96
    64 Args: Exp . COMMA Args
    65     | Exp .
 
-    COMMA     shift, and go to state 113
+    COMMA     shift, and go to state 114
     ASSIGNOP  shift, and go to state 83
     RELOP     shift, and go to state 84
     PLUS      shift, and go to state 85
@@ -1325,55 +1319,34 @@ State 97
 
    55 Exp: ID LP Args . RP
 
-    RP  shift, and go to state 114
+    RP  shift, and go to state 115
 
 
 State 98
+
+   62 Exp: LP error RP .
+
+    $default  reduce using rule 62 (Exp)
+
+
+State 99
 
    52 Exp: LP Exp RP .
 
     $default  reduce using rule 52 (Exp)
 
 
-State 99
+State 100
 
    31 Stmt: RETURN Exp SEMI .
 
     $default  reduce using rule 31 (Stmt)
 
 
-State 100
+State 101
 
    32 Stmt: IF LP Exp . RP Stmt
    33     | IF LP Exp . RP Stmt ELSE Stmt
-   44 Exp: Exp . ASSIGNOP Exp
-   45    | Exp . AND Exp
-   46    | Exp . OR Exp
-   47    | Exp . RELOP Exp
-   48    | Exp . PLUS Exp
-   49    | Exp . MINUS Exp
-   50    | Exp . STAR Exp
-   51    | Exp . DIV Exp
-   57    | Exp . LB Exp RB
-   58    | Exp . DOT ID
-   63    | Exp . LB error RB
-
-    ASSIGNOP  shift, and go to state 83
-    RELOP     shift, and go to state 84
-    PLUS      shift, and go to state 85
-    MINUS     shift, and go to state 86
-    STAR      shift, and go to state 87
-    DIV       shift, and go to state 88
-    AND       shift, and go to state 89
-    OR        shift, and go to state 90
-    DOT       shift, and go to state 91
-    RP        shift, and go to state 115
-    LB        shift, and go to state 92
-
-
-State 101
-
-   34 Stmt: WHILE LP Exp . RP Stmt
    44 Exp: Exp . ASSIGNOP Exp
    45    | Exp . AND Exp
    46    | Exp . OR Exp
@@ -1400,6 +1373,34 @@ State 101
 
 
 State 102
+
+   34 Stmt: WHILE LP Exp . RP Stmt
+   44 Exp: Exp . ASSIGNOP Exp
+   45    | Exp . AND Exp
+   46    | Exp . OR Exp
+   47    | Exp . RELOP Exp
+   48    | Exp . PLUS Exp
+   49    | Exp . MINUS Exp
+   50    | Exp . STAR Exp
+   51    | Exp . DIV Exp
+   57    | Exp . LB Exp RB
+   58    | Exp . DOT ID
+   63    | Exp . LB error RB
+
+    ASSIGNOP  shift, and go to state 83
+    RELOP     shift, and go to state 84
+    PLUS      shift, and go to state 85
+    MINUS     shift, and go to state 86
+    STAR      shift, and go to state 87
+    DIV       shift, and go to state 88
+    AND       shift, and go to state 89
+    OR        shift, and go to state 90
+    DOT       shift, and go to state 91
+    RP        shift, and go to state 117
+    LB        shift, and go to state 92
+
+
+State 103
 
    44 Exp: Exp . ASSIGNOP Exp
    44    | Exp ASSIGNOP Exp .
@@ -1428,7 +1429,7 @@ State 102
     $default  reduce using rule 44 (Exp)
 
 
-State 103
+State 104
 
    44 Exp: Exp . ASSIGNOP Exp
    45    | Exp . AND Exp
@@ -1451,7 +1452,7 @@ State 103
     $default  reduce using rule 47 (Exp)
 
 
-State 104
+State 105
 
    44 Exp: Exp . ASSIGNOP Exp
    45    | Exp . AND Exp
@@ -1477,7 +1478,7 @@ State 104
     $default  reduce using rule 48 (Exp)
 
 
-State 105
+State 106
 
    44 Exp: Exp . ASSIGNOP Exp
    45    | Exp . AND Exp
@@ -1503,7 +1504,7 @@ State 105
     $default  reduce using rule 49 (Exp)
 
 
-State 106
+State 107
 
    44 Exp: Exp . ASSIGNOP Exp
    45    | Exp . AND Exp
@@ -1527,7 +1528,7 @@ State 106
     $default  reduce using rule 50 (Exp)
 
 
-State 107
+State 108
 
    44 Exp: Exp . ASSIGNOP Exp
    45    | Exp . AND Exp
@@ -1551,7 +1552,7 @@ State 107
     $default  reduce using rule 51 (Exp)
 
 
-State 108
+State 109
 
    44 Exp: Exp . ASSIGNOP Exp
    45    | Exp . AND Exp
@@ -1572,7 +1573,7 @@ State 108
     $default  reduce using rule 45 (Exp)
 
 
-State 109
+State 110
 
    44 Exp: Exp . ASSIGNOP Exp
    45    | Exp . AND Exp
@@ -1593,21 +1594,21 @@ State 109
     $default  reduce using rule 46 (Exp)
 
 
-State 110
+State 111
 
    58 Exp: Exp DOT ID .
 
     $default  reduce using rule 58 (Exp)
 
 
-State 111
+State 112
 
    63 Exp: Exp LB error . RB
 
-    RB  shift, and go to state 117
+    RB  shift, and go to state 118
 
 
-State 112
+State 113
 
    44 Exp: Exp . ASSIGNOP Exp
    45    | Exp . AND Exp
@@ -1632,10 +1633,10 @@ State 112
     OR        shift, and go to state 90
     DOT       shift, and go to state 91
     LB        shift, and go to state 92
-    RB        shift, and go to state 118
+    RB        shift, and go to state 119
 
 
-State 113
+State 114
 
    64 Args: Exp COMMA . Args
 
@@ -1647,41 +1648,20 @@ State 113
     LP     shift, and go to state 59
 
     Exp   go to state 96
-    Args  go to state 119
+    Args  go to state 120
 
 
-State 114
+State 115
 
    55 Exp: ID LP Args RP .
 
     $default  reduce using rule 55 (Exp)
 
 
-State 115
+State 116
 
    32 Stmt: IF LP Exp RP . Stmt
    33     | IF LP Exp RP . Stmt ELSE Stmt
-
-    error   shift, and go to state 53
-    INT     shift, and go to state 54
-    FLOAT   shift, and go to state 55
-    ID      shift, and go to state 56
-    MINUS   shift, and go to state 57
-    NOT     shift, and go to state 58
-    LP      shift, and go to state 59
-    LC      shift, and go to state 28
-    RETURN  shift, and go to state 60
-    IF      shift, and go to state 61
-    WHILE   shift, and go to state 62
-
-    CompSt  go to state 63
-    Stmt    go to state 120
-    Exp     go to state 66
-
-
-State 116
-
-   34 Stmt: WHILE LP Exp RP . Stmt
 
     error   shift, and go to state 53
     INT     shift, and go to state 54
@@ -1702,43 +1682,64 @@ State 116
 
 State 117
 
+   34 Stmt: WHILE LP Exp RP . Stmt
+
+    error   shift, and go to state 53
+    INT     shift, and go to state 54
+    FLOAT   shift, and go to state 55
+    ID      shift, and go to state 56
+    MINUS   shift, and go to state 57
+    NOT     shift, and go to state 58
+    LP      shift, and go to state 59
+    LC      shift, and go to state 28
+    RETURN  shift, and go to state 60
+    IF      shift, and go to state 61
+    WHILE   shift, and go to state 62
+
+    CompSt  go to state 63
+    Stmt    go to state 122
+    Exp     go to state 66
+
+
+State 118
+
    63 Exp: Exp LB error RB .
 
     $default  reduce using rule 63 (Exp)
 
 
-State 118
+State 119
 
    57 Exp: Exp LB Exp RB .
 
     $default  reduce using rule 57 (Exp)
 
 
-State 119
+State 120
 
    64 Args: Exp COMMA Args .
 
     $default  reduce using rule 64 (Args)
 
 
-State 120
+State 121
 
    32 Stmt: IF LP Exp RP Stmt .
    33     | IF LP Exp RP Stmt . ELSE Stmt
 
-    ELSE  shift, and go to state 122
+    ELSE  shift, and go to state 123
 
     $default  reduce using rule 32 (Stmt)
 
 
-State 121
+State 122
 
    34 Stmt: WHILE LP Exp RP Stmt .
 
     $default  reduce using rule 34 (Stmt)
 
 
-State 122
+State 123
 
    33 Stmt: IF LP Exp RP Stmt ELSE . Stmt
 
@@ -1755,11 +1756,11 @@ State 122
     WHILE   shift, and go to state 62
 
     CompSt  go to state 63
-    Stmt    go to state 123
+    Stmt    go to state 124
     Exp     go to state 66
 
 
-State 123
+State 124
 
    33 Stmt: IF LP Exp RP Stmt ELSE Stmt .
 

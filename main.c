@@ -17,7 +17,7 @@ int main(int argc ,char** argv){
 	}
 	yyrestart(f);
 
-  //yydebug = 1;
+//  yydebug = 1;
   yyparse();
   
   if (compile) {
