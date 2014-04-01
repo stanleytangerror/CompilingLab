@@ -1,6 +1,7 @@
 #include "tree.h"
 
 node * forest;
+bool compile;
 
 const char * stringNonTerminate [] = { 
  "Program", "ExtDefList", "ExtDef", "ExtDecList",
@@ -173,15 +174,10 @@ node * reduce(enum NonTerminate nonterm, int lineno, int num, ...) {
   }
   va_end(argptr);
 
-  printf("\nreduce ----- start --\n");
-  traversal(upper, 0, printnode);
-  printf("reduce ----- end --\n\n");
+//  printf("\nreduce ----- start --\n");
+//  traversal(upper, 0, printnode);
+//  printf("reduce ----- end --\n\n");
   return upper;
-}
-
-void printinfo(node * p, int indent) {
-    printf("%d  ", p->label);
-  
 }
 
 void printnode(node * p, int indent) {
@@ -205,7 +201,7 @@ void printnode(node * p, int indent) {
       printf("INT: %d\n", p->nvalue.value_int);
       break;
     case NODE_FLOAT:
-      printf("FLOAT: %d\n", p->nvalue.value_float);
+      printf("FLOAT: %f\n", p->nvalue.value_float);
       break;
     case NODE_TYPE:
       printf("TYPE: %s\n", stringTypeValue[p->nvalue.value_type]);

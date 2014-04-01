@@ -2,7 +2,7 @@
 %{
 	#include "syntax.tab.h"	
   #include "tree.h"
-  #define YYDEBUG 1
+//  #define YYDEBUG 1
   
   int cols = 0;
 	int chars = 0;
@@ -56,15 +56,15 @@ number		{digit}+(\.{digit}+)?(E[+-]?{digit}+)?
 "if"		{yylval.type_node = shiftTerminate(eIF, yylineno); return IF;  }
 "else"		{yylval.type_node = shiftTerminate(eELSE, yylineno); return ELSE;  }
 "while"		{yylval.type_node = shiftTerminate(eWHILE, yylineno); return WHILE;  }
-{wrongoct}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
-{wronghex}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
+{wrongoct}		{printf("Error type A at line %d: Illegal octal number \'%s\'\n", yylineno, yytext); compile = false;} 
+{wronghex}		{printf("Error type A at line %d: Illegal hexadecimal number \'%s\'\n", yylineno, yytext); compile = false;} 
 {hex}		{yylval.type_node = shiftInt((int)strtol(yytext, NULL, 16), yylineno); return  INT; }
 {oct}		{yylval.type_node = shiftInt((int)strtol(yytext, NULL, 8), yylineno); return  INT; }
 {int}		{yylval.type_node = shiftInt((int)atoi(yytext), yylineno); return  INT; }
 {float}		{yylval.type_node = shiftFloat((float)atof(yytext), yylineno);	return FLOAT; }
-{wrongid}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
+{wrongid}		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); compile = false;} 
 {id}		{yylval.type_node = shiftId(yytext, yylineno);	return ID;}
-.		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); } 
+.		{printf("Error type A at line %d: Mysterious character \'%s\'\n", yylineno, yytext); compile = false;} 
 
 %%
 

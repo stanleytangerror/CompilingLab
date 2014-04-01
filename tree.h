@@ -71,6 +71,7 @@ struct node {
 typedef struct node node;
 
 extern node * forest;
+extern bool compile;
 
 node * newnode();
 

@@ -7,7 +7,9 @@ extern FILE * yydebug;
 
 int main(int argc ,char** argv){
 	if (argc<=1) return 1;
-		
+	
+  compile = true;
+
 	FILE *f = fopen(argv[1], "r");
 	if (!f){
 	  perror(argv[1]);
@@ -15,10 +17,12 @@ int main(int argc ,char** argv){
 	}
 	yyrestart(f);
 
-  yydebug = 1;
+//  yydebug = 1;
   yyparse();
-	
-  traversal(forest, 0, printnode);
   
+  if (compile) {
+    traversal(forest, 0, printnode);
+  }
+
   return 0;
 }
