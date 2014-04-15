@@ -21,8 +21,8 @@ letter		[_a-zA-Z]
 digit		[0-9]
 wrongoct  0[0-7]*[89]+({digit}|{letter})*
 oct		0[0-7]+
-wronghex  0x[0-9a-fA-F]*[g-zG-Z]+({digit}|{letter})*
-hex		0x[0-9a-fA-F]+
+wronghex  0[Xx][0-9a-fA-F]*[g-zG-Z]+({digit}|{letter})*
+hex		0[Xx][0-9a-fA-F]+
 wrongid  {digit}+{letter}+({digit}|{letter})*
 id		{letter}({letter}|{digit})*
 int		([1-9]{digit}*)|0
