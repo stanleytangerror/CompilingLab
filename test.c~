@@ -14,6 +14,6 @@ int main()
 	printf("%s\n" , n);
 	scanf("%s" , c);
 	printf("%s\n" , c);
-	strcpy(name , check);
+	strcpy(name , check)
 	printf("%s\n" , name);
 }
