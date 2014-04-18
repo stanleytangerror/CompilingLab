@@ -1,5 +1,9 @@
+int func(int i , int j[10]){
+	return i;
+}
+
 int main()
 {
-  int a[3];
-  int b;
+  int i;
+  int j;
 }
