@@ -9,6 +9,7 @@ FieldList* varlist[MAX_VARIABLE] = {NULL};
 Type * typelist[MAX_VARIABLE] = {NULL};
 
 Type vartype;
+Type * typeptr = NULL;
 
 unsigned int hash_pjw(char *name){
   unsigned int val = 0, i;
@@ -75,6 +76,7 @@ int findVar(char *name){
 }
 
 int subtreeDef(node * p, Type * upperlevel, FieldList * fieldspace) {
+  bool isStruct = false;
   //FieldList * fl = (FieldList *) malloc(sizeof(FieldList));
   vartype.kind = basic;
   vartype.u.basic = 0;
@@ -92,6 +94,7 @@ int subtreeDef(node * p, Type * upperlevel, FieldList * fieldspace) {
     case NODE_NONTERMINATE:
       assert(p->child->ntype.type_nonterm == StructSpecifier);
       subtreeStructSpecifier(p->child, NULL);
+      isStruct = true;
       //vartype.kind = structure;
       //strncpy(vartype.u.structure.name, p->child->sibling->child->nvalue.value_id, MAXID);
       break;
@@ -103,12 +106,13 @@ int subtreeDef(node * p, Type * upperlevel, FieldList * fieldspace) {
   p = p->sibling;
   //Declist
   printf("start add DecList\n");
-  subtreeDecList(p, upperlevel);
+  subtreeDecList(p, upperlevel, isStruct);
   printf("end add DecList\n");
   //SEMI
 }
 
 int subtreeExtDef(node * p, Type * upperlevel, FieldList * fieldspace) {
+  bool isStruct = false;
   vartype.kind = basic;
   vartype.u.basic = 0;
   //fl->type = type;
@@ -125,6 +129,7 @@ int subtreeExtDef(node * p, Type * upperlevel, FieldList * fieldspace) {
     case NODE_NONTERMINATE:
       assert(p->child->ntype.type_nonterm == StructSpecifier);
       subtreeStructSpecifier(p->child, upperlevel, NULL);
+      isStruct = true;
       //memcpy(&vartype,  = structure;
       //strncpy(vartype.u.structure.name, p->child->sibling->child->nvalue.value_id, MAXID);
       break;
@@ -136,7 +141,7 @@ int subtreeExtDef(node * p, Type * upperlevel, FieldList * fieldspace) {
   p = p->sibling;
   //Declist
   printf("start add DecList\n");
-  subtreeDecList(p, upperlevel);
+  subtreeDecList(p, upperlevel, isStruct);
   printf("end add DecList\n");
   //SEMI
   return 0;
@@ -156,26 +161,31 @@ int subtreeStructSpecifier(node * p, Type * upperlevel, FieldList * fieldspace) 
       type->kind = structure;
       strncpy(type->u.structure.name, p->sibling->child->nvalue.value_id, MAXID);
       addType(type);
-      vartype.kind = structure;
-      strncpy(vartype.u.structure.name, type->u.structure.name, MAXID);
-      vartype.u.structure.structure = type;
+      typeptr = type;
       semantic(q->child->sibling->sibling->sibling, type); 
     }
   }
 }
 
-int subtreeDecList(node * p, Type * upperlevel) {
+int subtreeDecList(node * p, Type * upperlevel, bool isStruct) {
   if (p != NULL) {
     node * subtree = p;
     if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == VarDec
         && p->child->label == NODE_ID) {
 
       FieldList * fl = (FieldList *) malloc(sizeof(FieldList));
-      //basic
-      fl->type = (Type *) malloc(sizeof(Type));
-      memcpy((void *)fl->type, (void *)&vartype, sizeof(Type));
-      strncpy(fl->name, p->child->nvalue.value_id, MAXID);
-      fl->tail = NULL;
+      if (!isStruct) {
+        //basic type
+        fl->type = (Type *) malloc(sizeof(Type));
+        memcpy((void *)fl->type, (void *)&vartype, sizeof(Type));
+        strncpy(fl->name, p->child->nvalue.value_id, MAXID);
+        fl->tail = NULL;
+      } else {
+        //basic structrue
+        fl->type = typeptr;
+        strncpy(fl->name, p->child->nvalue.value_id, MAXID);
+        fl->tail = NULL;
+      }
 
       //array
       while (p->parent->label == NODE_NONTERMINATE && p->parent->ntype.type_nonterm == VarDec) {
@@ -183,7 +193,7 @@ int subtreeDecList(node * p, Type * upperlevel) {
         Type * type = (Type *) malloc(sizeof(Type)), * temp = fl->type;
         type->kind = array;
         type->u.array.size = p->child->sibling->sibling->nvalue.value_int;
-        
+
         if (fl->type->kind == basic) {
           type->u.array.elem = fl->type;
           fl->type = type;
@@ -204,18 +214,21 @@ int subtreeDecList(node * p, Type * upperlevel) {
           upper->u.structure.structure = fl;
         } else {
           ahead = upper->u.structure.structure;
-          while (ahead->tail != NULL) {
+          while (true) {
+            if (ahead->tail == NULL) {
+              ahead->tail = fl;
+              break;
+            }
             ahead = ahead->tail;
           }
-          ahead = fl;
         }
       }
 
 
       addVar(fl);
     }
-    subtreeDecList(subtree->child, upperlevel);
-    subtreeDecList(subtree->sibling, upperlevel);
+    subtreeDecList(subtree->child, upperlevel, isStruct);
+    subtreeDecList(subtree->sibling, upperlevel, isStruct);
   }
 }
 
@@ -226,7 +239,7 @@ void semantic(node * p, Type * upperlevel) {
       switch (p->ntype.type_nonterm) {
         case Def:
           printf("start add Def\n");
-          subtreeDef(p, NULL, NULL);
+          subtreeDef(p, upperlevel, NULL);
           printf("end add Def\n");
           semantic(p->sibling, upperlevel);
           break;
@@ -242,8 +255,8 @@ void semantic(node * p, Type * upperlevel) {
           break;
       }
     } else {
-          semantic(p->child, upperlevel);
-          semantic(p->sibling, upperlevel);
+      semantic(p->child, upperlevel);
+      semantic(p->sibling, upperlevel);
     }
   }
 }

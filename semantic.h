@@ -43,7 +43,7 @@ int findVar(char *name);
 
 int subtreeDef(node * p, Type * upperlevel, FieldList * fieldspace);
 
-int subtreeDecList(node * p, Type * upperlevel);
+int subtreeDecList(node * p, Type * upperlevel, bool isStruct);
 
 void semantic(node * p, Type * upperlevel);
 
