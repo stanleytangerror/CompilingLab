@@ -1,15 +1,15 @@
-file=testcodes/test01.c
+file=testcodes/test02.c
 
 analyze:
 	flex lexical.l
 	bison -d -v syntax.y
-	gcc -g main.c tree.c syntax.tab.c -lfl -ly -o parser
+	gcc -g main.c semantic.c tree.c syntax.tab.c -lfl -ly -o parser
 	./parser $(file)
 
 debug:
 	flex lexical.l
 	bison -d -t syntax.y
-	gcc main.c tree.c syntax.tab.c -lfl -ly -o parser
+	gcc main.c semantic.c tree.c syntax.tab.c -lfl -ly -o parser
 	./parser $(file)
 
 clean:

@@ -23,7 +23,8 @@ int main(int argc ,char** argv){
   if (compile) {
     traversal(forest, 0, printnode);
     printf("========================\n");
-    traversal(forest, 0, addvariable);
+    //traversal(forest, 0, addvariable);
+    semantic(forest, NULL);
   }
 
   return 0;
