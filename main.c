@@ -24,10 +24,11 @@ int main(int argc ,char** argv){
     traversal(forest, 0, printnode);
     printf("========================\n");
     //traversal(forest, 0, addvariable);
-    semantic(forest, NULL);
+    semantic(forest, NULL,NULL);
     printf("========================\n");
     gettypelist();
     getvarlist();
+    getfunclist();
   }
 
   return 0;
