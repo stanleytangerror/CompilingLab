@@ -25,6 +25,9 @@ int main(int argc ,char** argv){
     printf("========================\n");
     //traversal(forest, 0, addvariable);
     semantic(forest, NULL);
+    printf("========================\n");
+    gettypelist();
+    getvarlist();
   }
 
   return 0;

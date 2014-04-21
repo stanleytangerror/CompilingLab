@@ -261,3 +261,82 @@ void semantic(node * p, Type * upperlevel) {
   }
 }
 
+void getvarlist() {
+  int i = 0;
+  Type * type = NULL;
+  for (i = 0; i < MAX_VARIABLE; i ++) {
+    if (varlist[i] != NULL ) {
+      printf("varlist[%d]: %s\n", i, varlist[i]->name);
+      switch (varlist[i]->type->kind) {
+        case basic :
+          printf("\tkind: basic\n");
+          printf("\tu: %s\n", (varlist[i]->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+          break;
+        case array :
+          printf("\tkind: array\n");
+          printf("\tu: ");
+          type = varlist[i]->type;
+          while (type->kind == array) {
+            printf("%d ", type->u.array.size);
+            type = type->u.array.elem;
+          }
+          if (type->kind == basic) {
+            printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+          } else {
+            printf("%s \n", type->u.structure.name);
+          }
+          break;
+        case structure :
+          printf("\tkind: structure\n");
+          printf("\tu: struct %s\n", varlist[i]->type->u.structure.name);
+          break;
+        default :
+          printf("\tvariable invalid\n");
+          break;
+      }
+    }
+  }
+}
+
+
+void gettypelist() {
+  int i = 0;
+  Type * type = NULL;
+  FieldList * member = NULL;
+  for (i = 0; i < MAX_VARIABLE; i ++) {
+    if (typelist[i] != NULL ) {
+      printf("typelist[%d]: struct %s\n", i, typelist[i]->u.structure.name);
+      member = typelist[i]->u.structure.structure;
+      while (member != NULL) {
+        switch (member->type->kind) {
+          case basic :
+            printf("\tmember: %s\n", member->name);
+            printf("\tu: %s\n", (member->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+            break;
+          case array :
+            printf("\tmember: %s\n", member->name);
+            printf("\tu: ");
+            type = member->type;
+            while (type->kind == array) {
+              printf("%d ", type->u.array.size);
+              type = type->u.array.elem;
+            }
+            if (type->kind == basic) {
+              printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+            } else {
+              printf("%s \n", type->u.structure.name);
+            }
+            break;
+          case structure :
+            printf("\tmember: %s\n", member->name);
+            printf("\tu: struct %s\n", member->type->u.structure.name);
+            break;
+          default :
+            printf("\ttype invalid\n");
+            break;
+        }
+        member = member->tail;
+      }
+    }
+  }
+}

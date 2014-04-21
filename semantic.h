@@ -47,4 +47,8 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct);
 
 void semantic(node * p, Type * upperlevel);
 
+void gettypelist();
+
+void gettypelist();
+
 #endif
