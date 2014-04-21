@@ -72,6 +72,7 @@ typedef struct node node;
 
 extern node * forest;
 extern bool compile;
+extern const char * stringNonTerminate[];
 
 node * newnode();
 

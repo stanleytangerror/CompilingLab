@@ -1,6 +1,9 @@
-int main(){
-  float a[10][2];
-  int i;
-  a[5,3] = 1.5;
-  if(a[1][2] == 0) i = 1 else i = 0;
-}
+struct S {
+  int s0;
+  float s1[9];
+  struct X {
+    int m;
+  } longlong;
+} temp;
+
+int a[9][8];

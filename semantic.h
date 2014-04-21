@@ -6,6 +6,7 @@
 
 typedef struct Type_ Type;
 typedef struct FieldList_ FieldList;
+typedef struct StructType StructType;
 
 struct Type_ {
   enum {basic, array, structure} kind;
@@ -15,7 +16,10 @@ struct Type_ {
       Type* elem;
       int size;
     } array;
-    FieldList* structure;
+    struct {
+      char name[NAME_LEN];
+      FieldList* structure;
+    } structure;
   } u;
 };
 
@@ -26,4 +30,25 @@ struct FieldList_ {
 };
 
 extern FieldList* varlist[MAX_VARIABLE];
+extern Type * typelist[MAX_VARIABLE];
+
+
+void InitialHashTable();
+
+//void InitialFieldList(FieldList * variable);
+
+int addVar(FieldList* variable);
+
+int findVar(char *name);
+
+int subtreeDef(node * p, Type * upperlevel, FieldList * fieldspace);
+
+int subtreeDecList(node * p, Type * upperlevel, bool isStruct);
+
+void semantic(node * p, Type * upperlevel);
+
+void gettypelist();
+
+void gettypelist();
+
 #endif

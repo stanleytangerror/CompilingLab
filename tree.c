@@ -1,28 +1,30 @@
 #include "tree.h"
-#include "semantic.c"
+#include "semantic.h"
 
 node * forest;
+
 int vartemp;
 Type vartype;
 FieldList * variable;
 
 bool compile;
-bool fDef = false , fStmt = false , fFunDec = false ,fParamDec = false;
+bool fDef = false , fStmt = false , fFunDec = false ,
+     fParamDec = false, fStructSpecifier = false;
 
 const char * stringNonTerminate [] = { 
- "Program", "ExtDefList", "ExtDef", "ExtDecList",
- "Specifier", "StructSpecifier", "OptTag", "Tag",
- "VarDec", "FunDec", "VarList", "ParamDec",
- "CompSt", "StmtList", "Stmt", "Args",
- "DefList", "Def", "DecList", "Dec", "Exp", "Empty"
- };
+  "Program", "ExtDefList", "ExtDef", "ExtDecList",
+  "Specifier", "StructSpecifier", "OptTag", "Tag",
+  "VarDec", "FunDec", "VarList", "ParamDec",
+  "CompSt", "StmtList", "Stmt", "Args",
+  "DefList", "Def", "DecList", "Dec", "Exp", "Empty"
+};
 
 const char * stringTerminate [] = {
- "SEMI", "COMMA", "ASSIGNOP", 
- "PLUS", "MINUS", "STAR", "DIV",
- "AND", "OR", "DOT", "NOT",
- "LP", "RP", "LB", "RB", "LC", "RC",
- "STRUCT", "RETURN", "IF", "ELSE", "WHILE"
+  "SEMI", "COMMA", "ASSIGNOP", 
+  "PLUS", "MINUS", "STAR", "DIV",
+  "AND", "OR", "DOT", "NOT",
+  "LP", "RP", "LB", "RB", "LC", "RC",
+  "STRUCT", "RETURN", "IF", "ELSE", "WHILE"
 };
 
 const char * stringSemanticTerminate [] = {
@@ -54,6 +56,7 @@ bool insert(node * parent, node * current) {
   node * p = parent;
   if (p->child == NULL) {
     p->child = current;
+    current->parent = parent;
   } else {
     p = p->child;
     while (p->sibling != NULL) {
@@ -84,9 +87,9 @@ bool merge(node * parent, int num, ...) {
 
 void traversal( node * subtree, int level, void (*func)(node *, int) ) {
   if (subtree != NULL) {
-      (* func)(subtree, level);
-      traversal(subtree->child, level + 1, func);
-      traversal(subtree->sibling, level, func);
+    (* func)(subtree, level);
+    traversal(subtree->child, level + 1, func);
+    traversal(subtree->sibling, level, func);
   }
 }
 
@@ -166,7 +169,7 @@ node * reduce(enum NonTerminate nonterm, int lineno, int num, ...) {
   upper->ntype.type_nonterm = nonterm;
   upper->nvalue.value_int = 0;
   upper->lineno = lineno;
-  
+
   node * p = NULL;
   va_list argptr;
   va_start(argptr, num);
@@ -180,9 +183,9 @@ node * reduce(enum NonTerminate nonterm, int lineno, int num, ...) {
   }
   va_end(argptr);
 
-//  printf("\nreduce ----- start --\n");
-//  traversal(upper, 0, printnode);
-//  printf("reduce ----- end --\n\n");
+  //  printf("\nreduce ----- start --\n");
+  //  traversal(upper, 0, printnode);
+  //  printf("reduce ----- end --\n\n");
   return upper;
 }
 
@@ -191,17 +194,17 @@ void printnode(node * p, int indent) {
     return;
   }
 
-  if (p->label != NODE_NONTERMINATE || p->ntype.type_nonterm != Empty) {
+  //if (p->label != NODE_NONTERMINATE || p->ntype.type_nonterm != Empty) {
     while (indent > 0) {
       printf("  ");
       indent --;
     }
-  }
+  //}
   switch (p->label) {
     case NODE_NONTERMINATE:
-      if (p->ntype.type_nonterm != Empty) {
+      //if (p->ntype.type_nonterm != Empty) {
         printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
-      }
+      //}
       break;
     case NODE_INT:
       printf("INT: %d\n", p->nvalue.value_int);
@@ -227,111 +230,159 @@ void printnode(node * p, int indent) {
   }
   return;
 }
+/*
+void addstructurevariable(node * p, int indent) {
+  switch (p->label) {
+    case NODE_NONTERMINATE:
+      switch (p->ntype.type_nonterm) {
+        case Def:
+          p = p->child;
+          
+          break;
+      }
+      break;
+  }
+}
 
-void addvariable(node * p , int indent) {
+FieldList * addDef(node * p, FieldList * upperlevel) {
+
+}
+
+FieldList * addstructure(node * p) {
+  FieldList * fl = (FieldList *) malloc(sizeof(FieldList));
+  fl->type = (Type *) malloc(sizeof(Type));
+  fl->tail = NULL;
+  fl->type->kind = structure;
+  //fl->type->u.structure = NULL;
+  p = p->child->sibling;
+  memcpy(fl->name, p->child->nvalue.value_id, MAXID);
+}
+
+void structuresubtree(node * p) {
+  fStructSpecifier = true;
+  
+  FieldList * fl = (FieldList *) malloc(sizeof(FieldList));
+  fl->type = (Type *) malloc(sizeof(Type));
+  fl->tail = NULL;
+  fl->type->kind = structure;
+  //fl->type->u.structure = NULL;
+  p = p->child->sibling;
+  memcpy(fl->name, p->child->nvalue.value_id, MAXID);
+
+  fStructSpecifier = false;
+}
+*/
+/*void addvariable(node * p , int indent) {
   if (p == NULL) {
+    return;
+  }
+  if (fStructSpecifier) {
     return;
   }
   switch (p->label) {
     case NODE_NONTERMINATE:
+      if (p->ntype.type_nonterm == StructSpecifier) {
+//        structuresubtree(p);
+        break;
+      }
+
       if (p->ntype.type_nonterm == Def) {
         printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
-	//variable = (FieldList *) malloc(sizeof(FieldList));
-	fDef = true;
+        //variable = (FieldList *) malloc(sizeof(FieldList));
+        fDef = true;
       }
-      if (p->ntype)
+      //if (p->ntype)
       if (p->ntype.type_nonterm == Stmt) {
         printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
-	fStmt = true;
+        fStmt = true;
       }
       if (p->ntype.type_nonterm == FunDec) {
         printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
-	fFunDec = true;
+        fFunDec = true;
       }
       if (p->ntype.type_nonterm == ParamDec && fFunDec){
-      	fParamDec = true;
+        fParamDec = true;
       }
       if (p->ntype.type_nonterm == VarDec){
-		if (p->child->label ==NODE_ID) {
-			vartype.kind = basic;
-			vartype.u.basic = vartemp; 			
-		}
-		else{
-			vartype.kind = array;
-		}
-	}
+        if (p->child->label == NODE_ID) {
+          vartype.kind = basic;
+          vartype.u.basic = vartemp; 			
+        } else {
+          vartype.kind = array;
+        }
+      }
       break;
     case NODE_INT:
       printf("INT: %d\n", p->nvalue.value_int);
-	variable->type->kind = basic;
-	variable->type->u.basic = 1;
+      variable->type->kind = basic;
+      variable->type->u.basic = 1;
       break;
     case NODE_FLOAT:
       printf("FLOAT: %f\n", p->nvalue.value_float);
       break;
     case NODE_TYPE:
       printf("TYPE: %s\n", stringTypeValue[p->nvalue.value_type]);
-	if (fDef){
-	    vartemp = p->nvalue.value_type;	
-	}
-	if (fParamDec){
-	    vartemp = p->nvalue.value_type;	
-	}
+      if (fDef){
+        vartemp = p->nvalue.value_type;	
+      }
+      if (fParamDec){
+        vartemp = p->nvalue.value_type;	
+      }
       break;
     case NODE_RELOP:
       printf("RELOP: %s\n", stringRelopValue[p->nvalue.value_relop]);
       break;
     case NODE_TERMINATE:
       printf("%s\n", stringTerminate[p->ntype.type_term]);
-	if (p->ntype.type_term == eSEMI){
-		fDef = false;
-		printf("Def finish \n");	
-	}
+      if (p->ntype.type_term == eSEMI){
+        fDef = false;
+        printf("Def finish \n");	
+      }
       break;    
     case NODE_ID:
       printf("ID: %s\n", p->nvalue.value_id);
-	 if (fDef){	
-	    variable = (FieldList *) malloc(sizeof(FieldList));
-	    InitialFieldList(variable);
-	    variable->type = &vartype;
-	    strcpy(variable->name , p->nvalue.value_id);
-	    //printf("HashVarName: %s\n", variable->name);
-	    int probe = addVar(variable);
-	    if (probe > 0){
-	    	printf("probe : = %d\n" , probe);
-	    	printf("hash[].name : = %s\n" , varlist[probe]->name);
-	   	printf("hash[].kind : = %d\n" , varlist[probe]->type->kind);
-	    	printf("hash[].type : = %d\n" , varlist[probe]->type->u.basic);
-	    }
-	    else{
-	    	printf("Error type 3 at line %d: Redefined variable \"%s\"\n " ,
-			p->lineno , p->nvalue.value_id);
-     	    }
-	}
-	if (fStmt){
-	   if (findVar(p->nvalue.value_id) < 0){
-		printf("Error type 1 at line %d: Undefined variable \"%s\"\n " ,
-			p->lineno , p->nvalue.value_id);	
-	   }	
-	}
-	if (fFunDec){
-	   if (findVar(p->nvalue.value_id) < 0){
-	   	printf("Error type 4 at line %d: Redefined function \"%s\"\n " ,
-			p->lineno , p->nvalue.value_id);
-		fFunDec = false;
-   	   }
-	   else{
-	   	variable = (FieldList *) malloc(sizeof(FieldList));
-		strcpy(variable->name , p->nvalue.value_id);
-  	   }	
-	}
-	if (fParamDec){
-	   FieldList * p = variable;
-	   bool f=true;	   
-		while (p!=NULL){
-		    if (strcmp(p->name , ))	
-		}	
-	}
+      if (fDef){	
+        variable = (FieldList *) malloc(sizeof(FieldList));
+        InitialFieldList(variable);
+        variable->type = &vartype;
+        strcpy(variable->name , p->nvalue.value_id);
+        //printf("HashVarName: %s\n", variable->name);
+        int probe = addVar(variable);
+        if (probe > 0){
+          printf("probe : = %d\n" , probe);
+          printf("hash[].name : = %s\n" , varlist[probe]->name);
+          printf("hash[].kind : = %d\n" , varlist[probe]->type->kind);
+          printf("hash[].type : = %d\n" , varlist[probe]->type->u.basic);
+        }
+        else{
+          printf("Error type 3 at line %d: Redefined variable \"%s\"\n " ,
+              p->lineno , p->nvalue.value_id);
+        }
+      }
+      if (fStmt){
+        if (findVar(p->nvalue.value_id) < 0){
+          printf("Error type 1 at line %d: Undefined variable \"%s\"\n " ,
+              p->lineno , p->nvalue.value_id);	
+        }	
+      }
+      if (fFunDec){
+        if (findVar(p->nvalue.value_id) < 0){
+          printf("Error type 4 at line %d: Redefined function \"%s\"\n " ,
+              p->lineno , p->nvalue.value_id);
+          fFunDec = false;
+        }
+        else{
+          variable = (FieldList *) malloc(sizeof(FieldList));
+          strcpy(variable->name , p->nvalue.value_id);
+        }	
+      }
+      if (fParamDec){
+        FieldList * p = variable;
+        bool f=true;	   
+        //while (p!=NULL){
+        //  if (strcmp(p->name , ))	
+        //}	
+      }
       break;
     default:
       printf("Invalid\n");
@@ -339,51 +390,4 @@ void addvariable(node * p , int indent) {
   }
   return;
 }
-
-/*int main () {
-
-  node * sub0 = reduce(2, 2, 
-  shiftInt(4, 3),
-  shiftInt(5, 3)
-    );
-  
-  node * sub1 = reduce(3, 2, 
-  shiftInt(6, 3),
-  shiftInt(7, 3),
-  shiftInt(8, 3)
-    );
-
-  forest = reduce( 1, 1, 2, sub0, sub1);
 */
-/*
-  shiftInt(1, 1);
-  shiftInt(1, 1);
-  shiftInt(1, 1);
-  shiftInt(1, 1);
-  shiftInt(1, 1);
-  shiftInt(1, 1);
-  shiftInt(1, 1);
-  shiftInt(1, 1);
-  shiftInt(1, 1);
-
-  node * subtree0 = newnode(2, 2);
-  insert(subtree0, newnode(5, 3));
-  insert(subtree0, newnode(6, 3));
-
-  node * subtree1 = newnode(3, 2);
-  insert(subtree1, newnode(7, 3));
-
-  merge(forest->child, 2, subtree0, subtree1);
-
-  node * subtree2 = newnode(4, 2);
-  insert(subtree2, newnode(8, 3));
-  insert(subtree2, newnode(9, 3));
-  insert(subtree2, newnode(10, 3));
-
-  merge(forest->child, 1, subtree2);
-*/
-/*  traversal(forest, 0, printnode);
-  
-  return 0;
-}*/
-
