@@ -26,7 +26,7 @@ hex		0[Xx][0-9a-fA-F]+
 wrongid  {digit}+{letter}+({digit}|{letter})*
 id		{letter}({letter}|{digit})*
 int		([1-9]{digit}*)|0
-float 		{int}\.{digit}*[1-9]
+float 		{int}\.{digit}*[0-9]
 number		{digit}+(\.{digit}+)?(E[+-]?{digit}+)?
 
 %%
