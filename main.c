@@ -29,6 +29,8 @@ int main(int argc ,char** argv){
     gettypelist();
     getvarlist();
     getfunclist();
+    getfuncdeclist();
+    checkfunc();
   }
 
   return 0;

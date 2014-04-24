@@ -1,11 +1,13 @@
-struct A {
-  int m;
-  float n[9][3];
-};
+int f(int a , float b);
 
-int main(int a, float b){
-  struct A t;
-  t.temp = 9;
-  t.m = 2.8;
-  m.a = 0;
+int f(int a ,float b){
+        a = b;
+	a + 1.0;
+	return a+1.0;
+}
+
+int func();
+int main()
+{
+	
 }
