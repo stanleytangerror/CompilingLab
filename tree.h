@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#define MAXID 16
+#define MAXID 32
 
 #define NODE_NONTERMINATE 0x00
 #define NODE_TERMINATE 0x01

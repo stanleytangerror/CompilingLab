@@ -20,6 +20,8 @@ char currentfuncname[MAXID];
 node * idnode = NULL;
 char firstid[MAXID];
 
+int anonymouscount = 0;
+
 bool leftmost = true;
 bool valid = true;
 bool decfunc = false;
@@ -301,13 +303,28 @@ int subtreeStructSpecifier(node * p, Type * upperlevel, Func * currentfunc) {
     //StructSpecifier define
     p = p->child;
     assert(p->label == NODE_TERMINATE && p->ntype.type_term == eSTRUCT);
-    if (p->sibling->label != NODE_NONTERMINATE) {
-      // anonimous struct
-      printf("anonimous structure not support currently in beta version\n");      
+    assert (p->sibling->label == NODE_NONTERMINATE);
+    if (p->sibling->ntype.type_nonterm == Empty) {
+      // anonymous struct
+      Type * type = (Type *) malloc(sizeof(Type));
+      type->kind = structure;
+      memcpy(type->u.structure.name, "AnonymousStructure", MAXID);
+      sprintf((type->u.structure.name + 18), "%2d", anonymouscount ++);
+      type->u.structure.structure = NULL;
+      if (findType(type->u.structure.name) >= 0 || findVar(type->u.structure.name) >= 0) {
+        assert(false);
+        printf("Error type 16 at line %d: Duplicate name \"%s\"\n", p->lineno, type->u.structure.name);
+        return -1;
+      }
+      addType(type);
+      typeptr = type;
+      semantic(q->child->sibling->sibling->sibling, type , currentfunc);
+      typeptr = type; 
     } else {
       Type * type = (Type *) malloc(sizeof(Type));
       type->kind = structure;
       strncpy(type->u.structure.name, p->sibling->child->nvalue.value_id, MAXID);
+      type->u.structure.structure = NULL;
       if (findType(type->u.structure.name) >= 0 || findVar(type->u.structure.name) >= 0) {
         printf("Error type 16 at line %d: Duplicate name \"%s\"\n", p->lineno, type->u.structure.name);
         return -1;

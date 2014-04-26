@@ -2,7 +2,7 @@
 #define __SEMANTIC_H__
 
 #define MAX_VARIABLE 16384
-#define NAME_LEN 16
+#define NAME_LEN 32
 
 typedef struct Type_ Type;
 typedef struct FieldList_ FieldList;
