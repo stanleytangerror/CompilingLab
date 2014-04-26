@@ -1,6 +1,6 @@
-int func() {
-  int x;
-  if (x.k == x.i) {
-    return 1;
-  }
+int main()
+{
+  int i, j;
+  while (i < 10) inc(j);
+  write(j);
 }
