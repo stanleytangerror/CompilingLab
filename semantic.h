@@ -54,6 +54,8 @@ int subtreeDef(node * p, Type * upperlevel, Func * currentfunc);
 
 int subtreeDecList(node * p, Type * upperlevel, bool isStruct, Func * currentfunc);
 
+Type * subtreeExp(node * P);
+
 void semantic(node * p, Type * upperlevel , Func * currentfunc);
 
 void gettypelist();

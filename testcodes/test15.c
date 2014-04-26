@@ -1,20 +1,17 @@
-struct Vector
+struct Complex
 {
-  float x, y;
+	float real , image;
+	int magnitude ,real;
 };
 
-float dotMultiply(struct Vector v1: struct Vector v2) 
+struct Complex2
 {
-  return v1.x*v2.y - vi.y*v2.x;
-}
+	float angle;
+	int mag;
+	float angle;
+	int extra = 3;
+};
 
 int main()
 {
-  stuct Vector v1, v2;
-  v1.x = 1.2;
-  v1.y = 3.6;
-  v2.x = 4.5;
-  v2.y = 6.7;
-
-  return dotMultiply(v1, v2));
 }

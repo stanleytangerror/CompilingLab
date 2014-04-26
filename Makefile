@@ -1,4 +1,4 @@
-file=testcodes/test03.c
+file=testcodes/test19.c
 
 analyze:
 	flex lexical.l

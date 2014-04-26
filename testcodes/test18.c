@@ -1,10 +1,32 @@
+struct Complex
+{
+	float real ,image;
+};
+
+int abs(int y);
+
+float abs(struct Complex x);
+
+float abs2(struct Complex x)
+{
+	struct Complex z;
+	return x.real * x.real + x.image * x.image;
+}
+int abs(int y);
 int main()
 {
-  int i, a[2][10];
-  i = 0;
-  while(i < 10)
-  {
-    a[0][i] = i;
-    a[1][i] = i;
-  }
+	int i,j,a[10][10];
+	struct Complex k;
+	i =0;
+	if (i <= 10) j=abs(i);
+
+	while (i<10)
+{
+	j = j-2;
+	i = i+1;
 }
+i*6;
+}
+int main();
+float abs2(struct Complex x);
+
