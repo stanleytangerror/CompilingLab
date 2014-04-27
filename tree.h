@@ -98,7 +98,9 @@ node * reduce(enum NonTerminate nonterm, int lineno, int num, ...);
 
 void printinfo(node * p, int indent);
 
- void printnode(node * p, int indent);
+void nothingnode(node * p, int indent);
+
+void printnode(node * p, int indent);
 
 void addvariable(node * p , int indent);
 

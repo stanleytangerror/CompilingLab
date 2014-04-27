@@ -189,6 +189,9 @@ node * reduce(enum NonTerminate nonterm, int lineno, int num, ...) {
   return upper;
 }
 
+void nothingnode(node * p, int indent) {
+}
+  
 void printnode(node * p, int indent) {
   if (p == NULL) {
     return;

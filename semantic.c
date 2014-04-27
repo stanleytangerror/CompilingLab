@@ -51,11 +51,6 @@ void InitialHashTable(){
   }
 }
 
-void InitialFieldList(FieldList * variable){
-  variable->type = NULL;
-  variable->tail = NULL;
-}
-
 int addType(Type* type){
   char *name = type->u.structure.name;
   unsigned int probe = hash_pjw(name);
@@ -162,6 +157,7 @@ bool cmpType(Type * p, Type * q) {
       return false;
   }
 }
+
 bool cmpFunc(Func * f1, Func * f2){
   bool F = true;
   FieldList * p1= NULL;
@@ -282,8 +278,8 @@ int subtreeFunctionSpecifier(node *p, Type * upperlevel , Func * currentfunc){
     memcpy((void *)func->returntype , (void *)&vartype , sizeof(Type));
     strncpy(func->name , p->child->nvalue.value_id , MAXID);
     strncpy(currentfuncname , p->child->nvalue.value_id , MAXID);
-    func->param = NULL;
-    if (decfunc) func->funclineno = p->child->lineno;
+    func->param = NULL; 
+    func->funclineno = p->child->lineno;
     int probe = findFunc(func->name);
     if (!decfunc && addFunc(func) < 0) printf("Error type 4 at line %d: Redefined function \"%s\"\n", 
         p->child->lineno, p->child->nvalue.value_id);
@@ -348,6 +344,7 @@ int subtreeStructSpecifier(node * p, Type * upperlevel, Func * currentfunc) {
 int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfunc) {
   if (p != NULL) {
     node * subtree = p;
+    bool redefinefield = false;
     if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == VarDec
         && p->child->label == NODE_ID) {
       FieldList * fl = (FieldList *) malloc(sizeof(FieldList));
@@ -399,6 +396,11 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
         } else {
           ahead = upper->u.structure.structure;
           while (true) {
+            if (strncmp(fl->name, ahead->name, MAXID) == 0) {
+              printf("Error type 15 at line %d: Redefine field \"%s\"\n", p->lineno, fl->name);
+              redefinefield = true;
+              break;
+            }
             if (ahead->tail == NULL) {
               ahead->tail = fl;
               break;
@@ -421,7 +423,7 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
           ahead->tail = fl;
         }
       }
-      if (!decfunc && addVar(fl) < 0)
+      if (!decfunc && addVar(fl) < 0 && !redefinefield)
         printf("Error type 3 at line %d: Redefined variable \"%s\"\n" , idnode->lineno , idnode->nvalue.value_id );
       // initial when define
       if (p->sibling != NULL && p->sibling->ntype.type_term == eASSIGNOP) {
@@ -480,16 +482,17 @@ bool subtreeArgs(node * p , char * funcname){
   FieldList * param = funclist[probe]->param;
   Type argtype;
   node * temp = p;
-  while (temp != NULL && param != NULL) {
-    if (temp->child->child->label == NODE_INT) {
-      argtype.kind = basic;
-      argtype.u.basic = eINTTYPE;
-    } else if (temp->child->child->label == NODE_FLOAT) {
-      argtype.kind = basic;
-      argtype.u.basic = eFLOATTYPE;
-    }
-    if ( cmpType(subtreeExp(temp->child->child), param->type) ) {
-      printf("Error\n");
+  // get all args
+  while (temp != NULL && param != NULL && checkargs) {
+    /*
+       if (temp->child->child->label == NODE_INT) {
+       argtype.kind = basic;
+       argtype.u.basic = eINTTYPE;
+       } else if (temp->child->child->label == NODE_FLOAT) {
+       argtype.kind = basic;
+       argtype.u.basic = eFLOATTYPE;
+       }*/
+    if ( !cmpType(subtreeExp(temp->child), param->type) ) {
       checkargs = false;
     } else {
       temp = (temp->child->sibling != NULL) ? temp->child->sibling->sibling : NULL;
@@ -500,74 +503,77 @@ bool subtreeArgs(node * p , char * funcname){
     checkargs = false;
   }
   if ( !checkargs ) {
-    printf("Error type 9 at line %d: The method \"%s(" , p->lineno , funcname);
-    printf(")\" is not applicable for the arguments \"(");
+    printf("Error type 9 at line %d: The method \"%s\" is not applicable for the arguments\n" ,
+        p->lineno , funcname);
     return false;
   } else {
     return true;
   }
   /*
-  int paramlist[100];
-  int count=1;
-  while (param != NULL ){
-    if (param->type->kind == basic)
-      paramlist[count] = param->type->u.basic;
-    else paramlist[count] = 2;
-    count++;
-    param = param->tail;
-  }
-  int i=0;
-  count--;	
-  bool check = true;
-  if (args[0] == count) {
-    int i=0;		
-    for (i=1 ; i<=count ; i++){
-      if (args[i] != paramlist[i]) check =false;
-    }
-  }
-  if (args[0] != count || (!check)){
-    printf("Error type 9 at line %d: The method \"%s(" , p->lineno , funcname);
-    if (count > 0) {
-      if (paramlist[1] == 0) printf("int");
-      if (paramlist[1] == 1) printf("float");
-      if (paramlist[1] == 2) printf("structure");
-      int i = 2;
-      for (i=2 ; i<= count ; i++) {
-        if (paramlist[i] == 0) printf(",int");
-        if (paramlist[i] == 1) printf(",float");
-        if (paramlist[i] == 2) printf(",structure");
-      }
-    } 
-    printf(")\" is not applicable for the arguments.\n");
-    return false;
-  }
-  return true;	
-*/
+     int paramlist[100];
+     int count=1;
+     while (param != NULL ){
+     if (param->type->kind == basic)
+     paramlist[count] = param->type->u.basic;
+     else paramlist[count] = 2;
+     count++;
+     param = param->tail;
+     }
+     int i=0;
+     count--;	
+     bool check = true;
+     if (args[0] == count) {
+     int i=0;		
+     for (i=1 ; i<=count ; i++){
+     if (args[i] != paramlist[i]) check =false;
+     }
+     }
+     if (args[0] != count || (!check)){
+     printf("Error type 9 at line %d: The method \"%s(" , p->lineno , funcname);
+     if (count > 0) {
+     if (paramlist[1] == 0) printf("int");
+     if (paramlist[1] == 1) printf("float");
+     if (paramlist[1] == 2) printf("structure");
+     int i = 2;
+     for (i=2 ; i<= count ; i++) {
+     if (paramlist[i] == 0) printf(",int");
+     if (paramlist[i] == 1) printf(",float");
+     if (paramlist[i] == 2) printf(",structure");
+     }
+     } 
+     printf(")\" is not applicable for the arguments.\n");
+     return false;
+     }
+     return true;	
+     */
 }
 /*
-void travelArgs(node * p){
-  if (p != NULL){
-    if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == Exp){
-      args[0]++;
-      int count = args[0];
-      subtreeExp(p);
-      if (lefttype->kind == 0) {
-        if (lefttype->u.basic == 0) args[count] = 0;
-        else args[count] = 1;
-      }
-      if (lefttype->kind == 1) {
-        args[count] = 0;		
-        //while (lefttype->u.array->kind != basic) lefttype = lefttype->u.array.elem
-      }
-      if (lefttype->kind == 2) args[count] = 2;
-    }
-    travelArgs(p->child);
-    travelArgs(p->sibling);
-  }
+   void travelArgs(node * p){
+   if (p != NULL){
+   if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == Exp){
+   args[0]++;
+   int count = args[0];
+   subtreeExp(p);
+   if (lefttype->kind == 0) {
+   if (lefttype->u.basic == 0) args[count] = 0;
+   else args[count] = 1;
+   }
+   if (lefttype->kind == 1) {
+   args[count] = 0;		
+//while (lefttype->u.array->kind != basic) lefttype = lefttype->u.array.elem
+}
+if (lefttype->kind == 2) args[count] = 2;
+}
+travelArgs(p->child);
+travelArgs(p->sibling);
+}
 }
 */
 Type * subtreeExp(node * p){
   if (p != NULL && valid){
+    if (p->label == NODE_NONTERMINATE && p->ntype.type_nonterm == Exp &&p->child->label == NODE_TERMINATE && p->child->ntype.type_term == eMINUS) {
+      return subtreeExp(p->child->sibling);
+    }
     Type * exptype = NULL;
     bool branch = false;
     //identify AND
@@ -615,8 +621,8 @@ Type * subtreeExp(node * p){
       }
       else {
         q = q->sibling->sibling;
-        if (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Args) {
-        //if ((q->label == NODE_TERMINATE && q->ntype.type_term == eRP) || (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Args)){
+        // if (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Args) {
+        if ((q->label == NODE_TERMINATE && q->ntype.type_term == eRP) || (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Args)){
           // memset(args , 0 , sizeof(int));
           // travelArgs(q);
           int i=0;
@@ -644,403 +650,396 @@ Type * subtreeExp(node * p){
           }		
         }	
       }
-    }
-    //identify ID
-    if (p->child != NULL && p->child->label == NODE_ID && p->child->sibling == NULL){
-      branch = true;
-      node * q = p->child, * tempnode = p;
-      Type * temptype, * childtype;
-      FieldList * mem;
-      int probe = findVar(q->nvalue.value_id);
-      if ( probe < 0 ){
-        valid = false;	
-        printf("Error type 1 at line %d: Undefined variable \"%s\"\n" , p->child->lineno , p->child->nvalue.value_id);		
-      } else {
-        // get whole semantic unit
-        temptype = varlist[probe]->type;
-        // array or structure
-        while (valid && tempnode->sibling != NULL) {
-          if (tempnode->sibling != NULL && tempnode->sibling->ntype.type_term == eLB) {
-            // array
-            if (temptype->kind == array) {
-              if (tempnode->sibling->sibling->child->ntype.type_term == eFLOAT) {
-                printf("Error type 12 at line %d: Operands type mistaken\n", tempnode->lineno);
-                valid = false;
-                break;
-              } else {
-                assert(tempnode->sibling->sibling->ntype.type_nonterm == Exp);
-                childtype = subtreeExp(tempnode->sibling->sibling);
-                leftmost = true;
-                if (childtype != NULL && (childtype->kind != basic || childtype->u.basic == eFLOAT) ) {
+      }
+      //identify ID
+      if (p->child != NULL && p->child->label == NODE_ID && p->child->sibling == NULL){
+        branch = true;
+        node * q = p->child, * tempnode = p;
+        Type * temptype, * childtype;
+        FieldList * mem;
+        int probe = findVar(q->nvalue.value_id);
+        if ( probe < 0 ){
+          valid = false;	
+          printf("Error type 1 at line %d: Undefined variable \"%s\"\n" , p->child->lineno , p->child->nvalue.value_id);		
+        } else {
+          // get whole semantic unit
+          temptype = varlist[probe]->type;
+          // array or structure
+          while (valid && tempnode->sibling != NULL) {
+            if (tempnode->sibling != NULL && tempnode->sibling->ntype.type_term == eLB) {
+              // array
+              if (temptype->kind == array) {
+                if (tempnode->sibling->sibling->child->ntype.type_term == eFLOAT) {
                   printf("Error type 12 at line %d: Operands type mistaken\n", tempnode->lineno);
                   valid = false;
                   break;
+                } else {
+                  assert(tempnode->sibling->sibling->ntype.type_nonterm == Exp);
+                  childtype = subtreeExp(tempnode->sibling->sibling);
+                  leftmost = true;
+                  if (childtype != NULL && (childtype->kind != basic || childtype->u.basic == eFLOAT) ) {
+                    printf("Error type 12 at line %d: Operands type mistaken\n", tempnode->lineno);
+                    valid = false;
+                    break;
+                  }
                 }
-              }
-              temptype = temptype->u.array.elem;
-              tempnode = tempnode->parent;
-            } else {
-              valid = false;
-              printf("Error type 10 at line %d: \"%s\" must be an array\n" , p->child->lineno , p->child->nvalue.value_id);		
-              break;
-            }
-          } else if (tempnode->sibling != NULL && tempnode->sibling->ntype.type_term == eDOT) {
-            // structure
-            if (temptype->kind == structure) {
-              mem = temptype->u.structure.structure;
-              while (mem != NULL) {
-                if (strncmp(mem->name, tempnode->sibling->sibling->nvalue.value_id, MAXID) == 0) {
-                  temptype = mem->type;
-                  break;
-                }
-                mem = mem->tail;
-              }
-              if ( mem == NULL) {
+                temptype = temptype->u.array.elem;
+                tempnode = tempnode->parent;
+              } else {
                 valid = false;
-                printf("Error type 14 at line %d: Unexisted field \"%s\"\n" , 
-                    p->child->lineno, tempnode->sibling->sibling->nvalue.value_id);
+                printf("Error type 10 at line %d: \"%s\" must be an array\n" , p->child->lineno , p->child->nvalue.value_id);		
                 break;
               }
-              tempnode = tempnode->parent;
-            } else {
-              valid = false;
-              printf("Error type 13 at line %d: Illegal use of \".\"\n" , p->child->lineno);
+            } else if (tempnode->sibling != NULL && tempnode->sibling->ntype.type_term == eDOT) {
+              // structure
+              if (temptype->kind == structure) {
+                mem = temptype->u.structure.structure;
+                while (mem != NULL) {
+                  if (strncmp(mem->name, tempnode->sibling->sibling->nvalue.value_id, MAXID) == 0) {
+                    temptype = mem->type;
+                    break;
+                  }
+                  mem = mem->tail;
+                }
+                if ( mem == NULL) {
+                  valid = false;
+                  printf("Error type 14 at line %d: Unexisted field \"%s\"\n" , 
+                      p->child->lineno, tempnode->sibling->sibling->nvalue.value_id);
+                  break;
+                }
+                tempnode = tempnode->parent;
+              } else {
+                valid = false;
+                printf("Error type 13 at line %d: Illegal use of \".\"\n" , p->child->lineno);
+                break;
+              }
+            } else
               break;
+          }
+          exptype = temptype;
+          // type compare
+          if (leftmost){
+            leftmost = false;
+            lefttype = temptype;
+            subtreeExp(p->child);
+            subtreeExp(p->sibling);
+          } else {
+            if ( !cmpType(lefttype, temptype) ) {
+              valid = false;
+              if (freturn) printf("Error type 8 at line %d: The return type mismatched\n" , p->lineno);
+              if (assignop || fdecexp) printf("Error type 5 at line %d: Type mismatched\n" , p->lineno);
+              else printf("Error type 7 at line %d: Operands type mismatched\n", p->lineno);	
             }
-          } else
-            break;
+            if (valid) {
+              subtreeExp(p->child);
+              subtreeExp(p->sibling);
+            }
+          }
         }
-        exptype = temptype;
-        // type compare
+      }
+      //identify INTorFLOAT
+      if (p->child != NULL && (p->child->label == NODE_INT || p->child->label == NODE_FLOAT) ){
+        exptype = &exptypecontent;
+        exptype->kind = basic;
+        exptype->u.basic = (p->child->label == NODE_INT) ? eINTTYPE : eFLOATTYPE;
         if (leftmost){
           leftmost = false;
-          lefttype = temptype;
+          vartype.kind = basic;
+          if (p->child->label == NODE_INT) vartype.u.basic = 0;
+          else vartype.u.basic = 1;
+          lefttype = &vartype;
           subtreeExp(p->child);
           subtreeExp(p->sibling);
-        } else {
-          if ( !cmpType(lefttype, temptype) ) {
+          //valid = false;			
+          //printf("Error type 6 at line %d: The left-hand side of an assignment must be a variable\n" , p->child->lineno);	
+        }
+        else {
+          int checkbasic = 0;
+          if (p->child->label == NODE_INT) checkbasic = 0;
+          else checkbasic = 1;
+          if (lefttype->kind != basic || lefttype->u.basic != checkbasic){
             valid = false;
-            if (freturn) printf("Error type 8 at line %d: The return type mismatched\n" , p->lineno);
-            if (assignop || fdecexp) printf("Error type 5 at line %d: Type mismatched\n" , p->lineno);
-            else printf("Error type 7 at line %d: Operands type mismatched\n", p->lineno);	
+            if (freturn) printf("Error type 8 at line %d: The return type mismatched\n" , p->child->lineno);
+            if (assignop || fdecexp) printf("Error type 5 at line %d: Type mismatched\n" , p->child->lineno);
+            else printf("Error type 7 at line %d: Operands type mismatched\n" , p->child->lineno);
           }
-          if (valid) {
+          else {
             subtreeExp(p->child);
             subtreeExp(p->sibling);
           }
         }
       }
-    }
-    //identify INTorFLOAT
-    if (p->child != NULL && (p->child->label == NODE_INT || p->child->label == NODE_FLOAT) ){
-      exptype = &exptypecontent;
-      exptype->kind = basic;
-      exptype->u.basic = (p->child->label == NODE_INT) ? eINTTYPE : eFLOATTYPE;
-      if (leftmost){
-        leftmost = false;
-        printf("-------INT or FLOAT-----\n");
-        vartype.kind = basic;
-        if (p->child->label == NODE_INT) vartype.u.basic = 0;
-        else vartype.u.basic = 1;
-        lefttype = &vartype;
+      if (!branch) {
         subtreeExp(p->child);
         subtreeExp(p->sibling);
-        //valid = false;			
-        //printf("Error type 6 at line %d: The left-hand side of an assignment must be a variable\n" , p->child->lineno);	
       }
-      else {
-        int checkbasic = 0;
-        if (p->child->label == NODE_INT) checkbasic = 0;
-        else checkbasic = 1;
-        if (lefttype->kind != basic || lefttype->u.basic != checkbasic){
-          valid = false;
-          if (freturn) printf("Error type 8 at line %d: The return type mismatched\n" , p->child->lineno);
-          if (assignop || fdecexp) printf("Error type 5 at line %d: Type mismatched\n" , p->child->lineno);
-          else printf("Error type 7 at line %d: Operands type mismatched\n" , p->child->lineno);
+      return exptype;
+    } else {
+      return NULL;
+    }
+  }
+
+  void semantic(node * p, Type * upperlevel , Func * currentfunc) {
+    if (p != NULL) {
+      if (p->label == NODE_NONTERMINATE ) {
+        //printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
+        switch (p->ntype.type_nonterm) {
+          case Def:
+          case ParamDec:
+            subtreeDef(p, upperlevel, currentfunc);
+            semantic(p->sibling, upperlevel , currentfunc);
+            break;
+          case ExtDef:
+            subtreeExtDef(p, upperlevel, currentfunc);
+            semantic(p->sibling, upperlevel , currentfunc);
+            break;
+          case Stmt:
+            subtreeStmt(p , upperlevel , currentfunc);
+            if(fstmt) {
+              semantic(p->child->sibling->sibling->sibling->sibling, upperlevel ,currentfunc);
+              semantic(p->sibling , upperlevel , currentfunc);			
+            }
+            else {
+              if (fexp) semantic(p->sibling , upperlevel , currentfunc);
+              else { semantic(p->child , upperlevel , currentfunc);
+                semantic(p->sibling , upperlevel ,currentfunc);			
+              }
+            }
+
+            break;
+          default:
+            semantic(p->child, upperlevel , currentfunc);
+            semantic(p->sibling, upperlevel , currentfunc);
+            break;
+        }
+      } else {
+        semantic(p->child, upperlevel , currentfunc);
+        semantic(p->sibling, upperlevel , currentfunc);
+      }
+    }
+  }
+
+  void getvarlist() {
+    int i = 0;
+    Type * type = NULL;
+    for (i = 0; i < MAX_VARIABLE; i ++) {
+      if (varlist[i] != NULL ) {
+        printf("varlist[%d]: %s\n", i, varlist[i]->name);
+        switch (varlist[i]->type->kind) {
+          case basic :
+            printf("\tkind: basic\n");
+            printf("\tu: %s\n", (varlist[i]->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+            break;
+          case array :
+            printf("\tkind: array\n");
+            printf("\tu: ");
+            type = varlist[i]->type;
+            while (type->kind == array) {
+              printf("%d ", type->u.array.size);
+              type = type->u.array.elem;
+            }
+            if (type->kind == basic) {
+              printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+            } else {
+              printf("%s \n", type->u.structure.name);
+            }
+            break;
+          case structure :
+            printf("\tkind: structure\n");
+            printf("\tu: struct %s\n", varlist[i]->type->u.structure.name);
+            break;
+          default :
+            printf("\tvariable invalid\n");
+            break;
+        }
+      }
+    }
+  }
+
+
+  void gettypelist() {
+    int i = 0;
+    Type * type = NULL;
+    FieldList * member = NULL;
+    for (i = 0; i < MAX_VARIABLE; i ++) {
+      if (typelist[i] != NULL ) {
+        printf("typelist[%d]: struct %s\n", i, typelist[i]->u.structure.name);
+        member = typelist[i]->u.structure.structure;
+        while (member != NULL) {
+          switch (member->type->kind) {
+            case basic :
+              printf("\tmember: %s\n", member->name);
+              printf("\tu: %s\n", (member->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+              break;
+            case array :
+              printf("\tmember: %s\n", member->name);
+              printf("\tu: ");
+              type = member->type;
+              while (type->kind == array) {
+                printf("%d ", type->u.array.size);
+                type = type->u.array.elem;
+              }
+              if (type->kind == basic) {
+                printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+              } else {
+                printf("%s \n", type->u.structure.name);
+              }
+              break;
+            case structure :
+              printf("\tmember: %s\n", member->name);
+              printf("\tu: struct %s\n", member->type->u.structure.name);
+              break;
+            default :
+              printf("\ttype invalid\n");
+              break;
+          }
+          member = member->tail;
+        }
+      }
+    }
+  }
+
+  void getfunclist() {
+    int i = 0;
+    FieldList * param = NULL;
+    Type * type = NULL;
+    for (i = 0; i < MAX_VARIABLE; i ++) {
+      if (funclist[i] != NULL ) {
+        printf("funclist[%d]: %s\n", i, funclist[i]->name);
+        switch (funclist[i]->returntype->kind) {
+          case basic :
+            printf("\treturnkind: basic\n");
+            printf("\tu: %s\n", (funclist[i]->returntype->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+            break;
+          case structure :
+            printf("\treturnkind: structure\n");
+            printf("\tu: struct %s\n", funclist[i]->returntype->u.structure.name);
+            break;
+          default :
+            printf("\tfuntion invalid\n");
+            break;
+        }
+
+        if (funclist[i]->param != NULL) param =funclist[i]->param;
+        while (param != NULL){
+          switch(param->type->kind){	
+            case basic :
+              printf("\tparam: %s\n", param->name);
+              printf("\tkind: basic\n");
+              printf("\tu: %s\n", (param->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+              break;
+            case array :
+              printf("\tparam: %s\n", param->name);
+              printf("\tkind: array\n");
+              printf("\tu: ");
+              type = param->type;
+              while (type->kind == array) {
+                printf("%d ", type->u.array.size);
+                type = type->u.array.elem;
+              }
+              if (type->kind == basic) {
+                printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+              } else {
+                printf("%s \n", type->u.structure.name);
+              }
+              break;
+            case structure :
+              printf("\tparam: %s\n", param->name);
+              printf("\tkind: structure\n");
+              printf("\tu: struct %s\n", param->type->u.structure.name);
+              break;
+            default :
+              printf("\tvariable invalid\n");
+              break;
+          }
+          param = param->tail;
+        }
+      }
+    }
+  }	
+
+  void getfuncdeclist() {
+    int i = 0;
+    FieldList * param = NULL;
+    Type * type = NULL;
+    for (i = 0; i < MAX_VARIABLE; i ++) {
+      if (funcdeclist[i] != NULL ) {
+        printf("funcdeclist[%d]: %s\n", i, funcdeclist[i]->name);
+        switch (funcdeclist[i]->returntype->kind) {
+          case basic :
+            printf("\treturnkind: basic\n");
+            printf("\tu: %s\n", (funcdeclist[i]->returntype->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+            break;
+          case structure :
+            printf("\treturnkind: structure\n");
+            printf("\tu: struct %s\n", funcdeclist[i]->returntype->u.structure.name);
+            break;
+          default :
+            printf("\tfuntion invalid\n");
+            break;
+        }
+
+        if (funcdeclist[i]->param != NULL) param =funcdeclist[i]->param;
+        while (param != NULL){
+          switch(param->type->kind){	
+            case basic :
+              printf("\tparam: %s\n", param->name);
+              printf("\tkind: basic\n");
+              printf("\tu: %s\n", (param->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+              break;
+            case array :
+              printf("\tparam: %s\n", param->name);
+              printf("\tkind: array\n");
+              printf("\tu: ");
+              type = param->type;
+              while (type->kind == array) {
+                printf("%d ", type->u.array.size);
+                type = type->u.array.elem;
+              }
+              if (type->kind == basic) {
+                printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
+              } else {
+                printf("%s \n", type->u.structure.name);
+              }
+              break;
+            case structure :
+              printf("\tparam: %s\n", param->name);
+              printf("\tkind: structure\n");
+              printf("\tu: struct %s\n", param->type->u.structure.name);
+              break;
+            default :
+              printf("\tvariable invalid\n");
+              break;
+          }
+          param = param->tail;
+        }
+      }
+    }
+  }
+
+
+  void checkfunc(){
+    int i = 0 , probe = 0;
+    char* name;
+    FieldList * paramdec = NULL;
+    FieldList * paramdef = NULL;
+    Type * type = NULL;
+    bool F = true;
+    for (i = 0 ; i<MAX_VARIABLE ; i++){
+      if ( funcdeclist[i] != NULL){
+        name = funcdeclist[i]->name;
+        if ( findFunc(name) < 0 ) {
+          F = false;
+          printf("Error type 18 at line %d: Undefined function \"%s\"\n" ,
+              funcdeclist[i]->funclineno , name);
         }
         else {
-          subtreeExp(p->child);
-          subtreeExp(p->sibling);
+          probe = findFunc(name);
+          if (! cmpFunc(funcdeclist[i] , funclist[probe]) )
+            printf("Error type 19 at line %d: Inconsistent declaration of function \"%s\"\n", funclist[i]->funclineno , name);
         }
       }
-    }
-    if (!branch) {
-      subtreeExp(p->child);
-      subtreeExp(p->sibling);
-    }
-    return exptype;
-  } else {
-    return NULL;
-  }
-}
 
-void semantic(node * p, Type * upperlevel , Func * currentfunc) {
-  if (p != NULL) {
-    if (p->label == NODE_NONTERMINATE ) {
-      //printf("%s (%d)\n", stringNonTerminate[p->ntype.type_nonterm], p->lineno);
-      switch (p->ntype.type_nonterm) {
-        case Def:
-        case ParamDec:
-          subtreeDef(p, upperlevel, currentfunc);
-          semantic(p->sibling, upperlevel , currentfunc);
-          break;
-        case ExtDef:
-          subtreeExtDef(p, upperlevel, currentfunc);
-          semantic(p->sibling, upperlevel , currentfunc);
-          break;
-        case Stmt:
-          subtreeStmt(p , upperlevel , currentfunc);
-          if(fstmt) {
-            semantic(p->child->sibling->sibling->sibling->sibling, upperlevel ,currentfunc);
-            semantic(p->sibling , upperlevel , currentfunc);			
-          }
-          else {
-            if (fexp) semantic(p->sibling , upperlevel , currentfunc);
-            else { semantic(p->child , upperlevel , currentfunc);
-              semantic(p->sibling , upperlevel ,currentfunc);			
-            }
-          }
-
-          break;
-        default:
-          semantic(p->child, upperlevel , currentfunc);
-          semantic(p->sibling, upperlevel , currentfunc);
-          break;
-      }
-    } else {
-      semantic(p->child, upperlevel , currentfunc);
-      semantic(p->sibling, upperlevel , currentfunc);
     }
   }
-}
-
-void getvarlist() {
-  int i = 0;
-  Type * type = NULL;
-  for (i = 0; i < MAX_VARIABLE; i ++) {
-    if (varlist[i] != NULL ) {
-      printf("varlist[%d]: %s\n", i, varlist[i]->name);
-      switch (varlist[i]->type->kind) {
-        case basic :
-          printf("\tkind: basic\n");
-          printf("\tu: %s\n", (varlist[i]->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-          break;
-        case array :
-          printf("\tkind: array\n");
-          printf("\tu: ");
-          type = varlist[i]->type;
-          while (type->kind == array) {
-            printf("%d ", type->u.array.size);
-            type = type->u.array.elem;
-          }
-          if (type->kind == basic) {
-            printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-          } else {
-            printf("%s \n", type->u.structure.name);
-          }
-          break;
-        case structure :
-          printf("\tkind: structure\n");
-          printf("\tu: struct %s\n", varlist[i]->type->u.structure.name);
-          break;
-        default :
-          printf("\tvariable invalid\n");
-          break;
-      }
-    }
-  }
-}
-
-
-void gettypelist() {
-  int i = 0;
-  Type * type = NULL;
-  FieldList * member = NULL;
-  for (i = 0; i < MAX_VARIABLE; i ++) {
-    if (typelist[i] != NULL ) {
-      printf("typelist[%d]: struct %s\n", i, typelist[i]->u.structure.name);
-      member = typelist[i]->u.structure.structure;
-      while (member != NULL) {
-        switch (member->type->kind) {
-          case basic :
-            printf("\tmember: %s\n", member->name);
-            printf("\tu: %s\n", (member->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-            break;
-          case array :
-            printf("\tmember: %s\n", member->name);
-            printf("\tu: ");
-            type = member->type;
-            while (type->kind == array) {
-              printf("%d ", type->u.array.size);
-              type = type->u.array.elem;
-            }
-            if (type->kind == basic) {
-              printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-            } else {
-              printf("%s \n", type->u.structure.name);
-            }
-            break;
-          case structure :
-            printf("\tmember: %s\n", member->name);
-            printf("\tu: struct %s\n", member->type->u.structure.name);
-            break;
-          default :
-            printf("\ttype invalid\n");
-            break;
-        }
-        member = member->tail;
-      }
-    }
-  }
-}
-
-void getfunclist() {
-  int i = 0;
-  FieldList * param = NULL;
-  Type * type = NULL;
-  for (i = 0; i < MAX_VARIABLE; i ++) {
-    if (funclist[i] != NULL ) {
-      printf("funclist[%d]: %s\n", i, funclist[i]->name);
-      switch (funclist[i]->returntype->kind) {
-        case basic :
-          printf("\treturnkind: basic\n");
-          printf("\tu: %s\n", (funclist[i]->returntype->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-          break;
-        case structure :
-          printf("\treturnkind: structure\n");
-          printf("\tu: struct %s\n", funclist[i]->returntype->u.structure.name);
-          break;
-        default :
-          printf("\tfuntion invalid\n");
-          break;
-      }
-
-      if (funclist[i]->param != NULL) param =funclist[i]->param;
-      while (param != NULL){
-        switch(param->type->kind){	
-          case basic :
-            printf("\tparam: %s\n", param->name);
-            printf("\tkind: basic\n");
-            printf("\tu: %s\n", (param->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-            break;
-          case array :
-            printf("\tparam: %s\n", param->name);
-            printf("\tkind: array\n");
-            printf("\tu: ");
-            type = param->type;
-            while (type->kind == array) {
-              printf("%d ", type->u.array.size);
-              type = type->u.array.elem;
-            }
-            if (type->kind == basic) {
-              printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-            } else {
-              printf("%s \n", type->u.structure.name);
-            }
-            break;
-          case structure :
-            printf("\tparam: %s\n", param->name);
-            printf("\tkind: structure\n");
-            printf("\tu: struct %s\n", param->type->u.structure.name);
-            break;
-          default :
-            printf("\tvariable invalid\n");
-            break;
-        }
-        param = param->tail;
-      }
-    }
-  }
-}	
-
-void getfuncdeclist() {
-  int i = 0;
-  FieldList * param = NULL;
-  Type * type = NULL;
-  for (i = 0; i < MAX_VARIABLE; i ++) {
-    if (funcdeclist[i] != NULL ) {
-      printf("funcdeclist[%d]: %s\n", i, funcdeclist[i]->name);
-      switch (funcdeclist[i]->returntype->kind) {
-        case basic :
-          printf("\treturnkind: basic\n");
-          printf("\tu: %s\n", (funcdeclist[i]->returntype->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-          break;
-        case structure :
-          printf("\treturnkind: structure\n");
-          printf("\tu: struct %s\n", funcdeclist[i]->returntype->u.structure.name);
-          break;
-        default :
-          printf("\tfuntion invalid\n");
-          break;
-      }
-
-      if (funcdeclist[i]->param != NULL) param =funcdeclist[i]->param;
-      while (param != NULL){
-        switch(param->type->kind){	
-          case basic :
-            printf("\tparam: %s\n", param->name);
-            printf("\tkind: basic\n");
-            printf("\tu: %s\n", (param->type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-            break;
-          case array :
-            printf("\tparam: %s\n", param->name);
-            printf("\tkind: array\n");
-            printf("\tu: ");
-            type = param->type;
-            while (type->kind == array) {
-              printf("%d ", type->u.array.size);
-              type = type->u.array.elem;
-            }
-            if (type->kind == basic) {
-              printf("%s \n", (type->u.basic == eINTTYPE) ? "INT" : "FLOAT");
-            } else {
-              printf("%s \n", type->u.structure.name);
-            }
-            break;
-          case structure :
-            printf("\tparam: %s\n", param->name);
-            printf("\tkind: structure\n");
-            printf("\tu: struct %s\n", param->type->u.structure.name);
-            break;
-          default :
-            printf("\tvariable invalid\n");
-            break;
-        }
-        param = param->tail;
-      }
-    }
-  }
-}
-
-
-void checkfunc(){
-  int i = 0 , probe = 0;
-  char* name;
-  FieldList * paramdec = NULL;
-  FieldList * paramdef = NULL;
-  Type * type = NULL;
-  bool F = true;
-  for (i = 0 ; i<MAX_VARIABLE ; i++){
-    if ( funcdeclist[i] != NULL){
-      name = funcdeclist[i]->name;
-      if ( findFunc(name) < 0 ) {
-        F = false;
-        printf("Error type 18 at line %d: Undefined function \"%s\"\n" ,
-            funcdeclist[i]->funclineno , name);
-      }
-      else {
-        probe = findFunc(name);
-        if (! cmpFunc(funcdeclist[i] , funclist[probe]) )
-          printf("Error type 19 at line %d: Inconsistent declaration of function \"%s\"\n",
-              funcdeclist[i]->funclineno , name);
-      }
-    }
-
-  }
-}
-
-
-
-
-
 
