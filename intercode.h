@@ -2,19 +2,22 @@
 #define __INTERCODE_H__
 
 typedef struct Operand_ {
-  enum { opVARIABLE, opCONSTANT, opADDRESS, opTEMP, opLABEL } kind;
+  enum { opVARIABLE, opCONSTANT, opADDRESS, opTEMP, opLABEL, opRELOP } kind;
   union {
     int var_no;
     int value;
-    
+    int addr_no;
+    int temp_no;
+    int label_no;
+    enum RelopValue relop;
   } u;
 } Operand;
 
 typedef struct InterCode {
-  enum { icASSIGN, icADD, icSUB, icMUL,
+  enum { icASSIGN, icADD, icSUB, icMUL, icDIV,
     icLABEL, icFUNCDEF, icGETADDR, icMEMREAD, icMEMWRITE, 
     icGOTOBRANCH, icIFBRANCH, 
-    icFUNCRETURN, iciMEMDEC, icARG, icCALL, icPARAM, 
+    icFUNCRETURN, icMEMDEC, icARG, icCALL, icPARAM, 
     icREAD, icWRITE
   } kind;
   union {
@@ -26,9 +29,9 @@ typedef struct InterCode {
     struct { Operand * result, * op; } memread;
     struct { Operand * result, * op; } memwrite;
     struct { Operand * label; } gotobranch;
-    struct { Operand * op1, * op2, * label; } ifbranch;
+    struct { Operand * op1, * relop, * op2, * label; } ifbranch;
     struct { Operand * op; } funcreturn;
-    struct { Operand * size; } memdec;
+    struct { Operand * op; int size; } memdec;
     struct { Operand * arg; } arg;
     struct { Operand * returnvalue; char * funcname; } call;
     struct { Operand * param; } param;
@@ -41,5 +44,11 @@ typedef struct InterCodes {
   InterCode code;
   struct InterCodes * prev, * next;
 } InterCodes;
+
+extern InterCodes * ichead;
+
+void printoperand(Operand * op);
+
+void printcode();
 
 #endif

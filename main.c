@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "tree.h"
+#include "semantic.h"
+#include "intercode.h"
 
 extern FILE * yydebug;
 //extern node * forest;
@@ -21,8 +23,8 @@ int main(int argc ,char** argv){
   yyparse();
   InitialHashTable();
   if (compile) {
-    //traversal(forest, 0, printnode);
-    traversal(forest, 0, nothingnode);
+    traversal(forest, 0, printnode);
+    //traversal(forest, 0, nothingnode);
     //printf("============================\n");
     //traversal(forest, 0, addvariable);
     semantic(forest, NULL,NULL);
@@ -31,6 +33,8 @@ int main(int argc ,char** argv){
     //getfunclist();
     //getfuncdeclist();
     checkfunc();
+    translate(forest);
+    printcode(ichead);
   }
 
   return 0;

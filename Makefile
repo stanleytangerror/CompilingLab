@@ -1,9 +1,9 @@
-file=testcodes/test19.c
+file=testcodes/test01.c
 
 analyze:
 	flex lexical.l
 	bison -d syntax.y
-	gcc main.c semantic.c tree.c syntax.tab.c -lfl -ly -o parser
+	gcc main.c intercode.c semantic.c tree.c syntax.tab.c -lfl -ly -o parser
 	./parser $(file)
 
 debug:

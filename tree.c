@@ -1,11 +1,10 @@
 #include "tree.h"
-#include "semantic.h"
 
 node * forest;
 
 int vartemp;
-Type vartype;
-FieldList * variable;
+// Type vartype;
+// FieldList * variable;
 
 bool compile;
 bool fDef = false , fStmt = false , fFunDec = false ,
