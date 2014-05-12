@@ -1,11 +1,10 @@
 #include "tree.h"
-#include "semantic.h"
 
 node * forest;
 
 int vartemp;
-Type vartype;
-FieldList * variable;
+// Type vartype;
+// FieldList * variable;
 
 bool compile;
 bool fDef = false , fStmt = false , fFunDec = false ,
@@ -32,7 +31,7 @@ const char * stringSemanticTerminate [] = {
 };
 
 const char * stringRelopValue [] = {
-  "LT", "LE", "GT", "GE", "EQ", "NE"
+  "<", "<=", ">", ">=", "==", "!="
 };
 
 const char * stringTypeValue [] = {
@@ -189,6 +188,9 @@ node * reduce(enum NonTerminate nonterm, int lineno, int num, ...) {
   return upper;
 }
 
+void nothingnode(node * p, int indent) {
+}
+  
 void printnode(node * p, int indent) {
   if (p == NULL) {
     return;

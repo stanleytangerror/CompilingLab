@@ -25,6 +25,7 @@ int main()
 	{
 		k = k+abs(1.0);	
 	}
+
 	i = i +abs(a[j]);
 	j;
 }

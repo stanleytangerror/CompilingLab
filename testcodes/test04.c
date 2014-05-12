@@ -1,9 +1,17 @@
-struct Complex
+int abs(int x)
 {
-  float real, image;
-};
+  if (x >= 0) return x;
+  else return -x;
+}
+
 int main()
 {
-  struct Complex x;
-  y.image = 3.5;
+  int i, j, k;
+  while ( i < 10) j = j + 1;
+}
+
+int abs(int x)
+{
+  if (x <= 0) return -x;
+  else return x;
 }

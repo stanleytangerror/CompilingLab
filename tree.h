@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#define MAXID 16
+#define MAXID 32
 
 #define NODE_NONTERMINATE 0x00
 #define NODE_TERMINATE 0x01
@@ -72,7 +72,11 @@ typedef struct node node;
 
 extern node * forest;
 extern bool compile;
-extern const char * stringNonTerminate[];
+extern const char * stringNonTerminate [];
+extern const char * stringTerminate [];
+extern const char * stringSemanticTerminate [];
+extern const char * stringRelopValue [];
+extern const char * stringTypeValue [];
 
 node * newnode();
 
@@ -98,7 +102,9 @@ node * reduce(enum NonTerminate nonterm, int lineno, int num, ...);
 
 void printinfo(node * p, int indent);
 
- void printnode(node * p, int indent);
+void nothingnode(node * p, int indent);
+
+void printnode(node * p, int indent);
 
 void addvariable(node * p , int indent);
 

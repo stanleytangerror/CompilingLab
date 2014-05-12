@@ -1,5 +1,16 @@
+int abs(int x)
+{
+if (x >= 0) return x;
+else return -x;
+}
 int main()
 {
-  int i = 0123;
-  int j = 0x3F;
+int i, j, a[10][10];
+float k = 3;
+while (i < 10)
+{
+j = k;
+k = k + 1.0;
+}
+k = abs(j);
 }
