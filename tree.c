@@ -31,7 +31,7 @@ const char * stringSemanticTerminate [] = {
 };
 
 const char * stringRelopValue [] = {
-  "LT", "LE", "GT", "GE", "EQ", "NE"
+  "<", "<=", ">", ">=", "==", "!="
 };
 
 const char * stringTypeValue [] = {

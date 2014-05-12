@@ -1,6 +1,9 @@
 #ifndef __INTERCODE_H__
 #define __INTERCODE_H__
 
+#include "tree.h"
+#include "semantic.h"
+
 typedef struct Operand_ {
   enum { opVARIABLE, opCONSTANT, opADDRESS, opTEMP, opLABEL, opRELOP } kind;
   union {
@@ -13,6 +16,11 @@ typedef struct Operand_ {
   } u;
 } Operand;
 
+typedef struct Operands {
+  Operand op;
+  struct Operands * prev, * next;
+} Operands;
+
 typedef struct InterCode {
   enum { icASSIGN, icADD, icSUB, icMUL, icDIV,
     icLABEL, icFUNCDEF, icGETADDR, icMEMREAD, icMEMWRITE, 
@@ -24,7 +32,7 @@ typedef struct InterCode {
     struct { Operand * right, * left; } assign;
     struct { Operand * result, * op1, * op2; } binop;
     struct { Operand * label; } label;
-    struct { char * funcname; } funcdef;
+    struct { char funcname[MAXID]; } funcdef;
     struct { Operand * result, * op; } getaddr;
     struct { Operand * result, * op; } memread;
     struct { Operand * result, * op; } memwrite;
@@ -33,7 +41,7 @@ typedef struct InterCode {
     struct { Operand * op; } funcreturn;
     struct { Operand * op; int size; } memdec;
     struct { Operand * arg; } arg;
-    struct { Operand * returnvalue; char * funcname; } call;
+    struct { Operand * returnop; char funcname[MAXID]; } call;
     struct { Operand * param; } param;
     struct { Operand * op; } read;
     struct { Operand * op; } write;
@@ -46,9 +54,26 @@ typedef struct InterCodes {
 } InterCodes;
 
 extern InterCodes * ichead;
+extern int temp_count;
+extern int addr_count;
+extern int label_count;
 
-void printoperand(Operand * op);
+InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place);
 
-void printcode();
+InterCodes * translate_Cond(node * exp, Operand * label_true, Operand * label_false, FieldList ** sym_table);
+
+InterCodes * translate_StmtList(node * stmtlist, FieldList ** sym_table);
+
+InterCodes * translate_CompSt(node * compst, FieldList ** sym_table);
+
+void printoperand(Operand * op); 
+
+void printcode(InterCodes * code);
+
+void fprintoperand(FILE * file, Operand * op); 
+
+void fprintcode(FILE * file, InterCodes * code);
+
+void writecode();
 
 #endif
