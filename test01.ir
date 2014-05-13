@@ -1,28 +1,44 @@
- FUNCTION main :
- READ  t0 
- var110  :=  t0 
- t1  :=  var110 
- t2  :=  #0 
- IF  t1  >  t2  GOTO  label0 
+ FUNCTION fact :
+ PARAM  var110 
+ t0  :=  var110 
+ t1  :=  #1 
+ IF  t0  ==  t1  GOTO  label0 
  GOTO  label1 
  LABEL  label0  : 
- t3  :=  #1 
- WRITE  t3 
+ t2  :=  var110 
+ RETURN  t2 
+
  GOTO  label2 
  LABEL  label1  : 
  t4  :=  var110 
- t5  :=  #0 
- IF  t4  <  t5  GOTO  label3 
+ t7  :=  var110 
+ t8  :=  #1 
+ t6  :=  t7  -  t8 
+ ARG  t6 
+ t5  := CALL fact 
+ t3  :=  t4  *  t5 
+ RETURN  t3 
+
+ LABEL  label2  : 
+ FUNCTION main :
+ READ  t9 
+ var109  :=  t9 
+ t10  :=  var109 
+ t11  :=  #1 
+ IF  t10  >  t11  GOTO  label3 
  GOTO  label4 
  LABEL  label3  : 
- t7  :=  #1 
- t6  :=  #0  -  t7 
- WRITE  t6 
+ t13  :=  var109 
+ ARG  t13 
+ t12  := CALL fact 
+ var4944  :=  t12 
  GOTO  label5 
  LABEL  label4  : 
- t8  :=  #0 
- WRITE  t8 
+ t14  :=  #1 
+ var4944  :=  t14 
  LABEL  label5  : 
- LABEL  label2  : 
- t9  :=  #0 
- RETURN  t9 
+ t15  :=  var4944 
+ WRITE  t15 
+ t16  :=  #0 
+ RETURN  t16 
+

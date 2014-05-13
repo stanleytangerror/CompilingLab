@@ -123,10 +123,10 @@ InterCodes * linkcode(int num, ...) {
   va_start(argptr, num);
   while (num > 0) {
     arg = va_arg(argptr, InterCodes *);
-    if (code0 == NULL) {
-      code0 = arg;
-    } else {
-      if (arg != NULL) {
+    if (arg != NULL) {
+      if (code0 == NULL) {
+        code0 = arg;
+      } else {
         p = code0;
         while (p->next != NULL) p = p->next;
         p->next = arg;
@@ -318,7 +318,7 @@ InterCodes * translate_DecList(node * declist, FieldList ** sym_table, Type * ty
     //Dec COMMA DecList
     node * dec = declist->child;
     InterCodes * code1 = translate_Dec(dec, sym_table, type);
-    InterCodes * code2 = translate_DecList(dec->sibling, sym_table, type);
+    InterCodes * code2 = translate_DecList(dec->sibling->sibling, sym_table, type);
     return linkcode(2, code1, code2);
   }
   return NULL;
@@ -400,7 +400,7 @@ InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) 
     Operand * op;
     assert(arg_list != NULL);
     while ( (op = get_arglist(arg_list, i)) != NULL ) {
-      linkcode(2, code2, gen_arg(op));
+      code2 = linkcode(2, code2, gen_arg(op));
       i ++;
     }
     return linkcode(3, code1, code2, gen_call(place, function));
@@ -411,7 +411,7 @@ InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) 
     Operand * t1 = new_temp();
     InterCodes * code1 = translate_Exp(exp->child->sibling, varlist, t1);
     InterCodes * code2 = gen_binop(eMINUS, place, get_value(0), t1);
-    linkcode(2, code1, code2);
+    code1 = linkcode(2, code1, code2);
     return code1;
   }
   if (exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eASSIGNOP) {
@@ -526,7 +526,7 @@ InterCodes * translate_Stmt(node * stmt, FieldList ** sym_table) {
     Operand * t1 = new_temp();
     InterCodes * code1 = translate_Exp(p->sibling, sym_table, t1);
     InterCodes * code2 = gen_funcreturn(t1);
-    linkcode(2, code1, code2);
+    code1 = linkcode(2, code1, code2);
     return code1;
   }
   if (stmt->child->label == NODE_TERMINATE && stmt->child->ntype.type_term == eWHILE) {
@@ -780,6 +780,7 @@ void printcode(InterCodes * code) {
       case icFUNCRETURN:
         printf(" RETURN ");
         printoperand(p->code.u.funcreturn.op);
+        printf("\n");
         break;
       case icMEMDEC:
         printf(" DEC ");
@@ -911,6 +912,7 @@ void fprintcode(FILE * file, InterCodes * code) {
       case icFUNCRETURN:
         fprintf(file, " RETURN ");
         fprintoperand(file, p->code.u.funcreturn.op);
+        fprintf(file, "\n");
         break;
       case icMEMDEC:
         fprintf(file, " DEC ");
