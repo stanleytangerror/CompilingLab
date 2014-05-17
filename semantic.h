@@ -6,6 +6,9 @@
 #define MAX_VARIABLE 16384
 #define NAME_LEN 32
 
+#define STATE_VARIABLE 0
+#define STATE_PARAM 1
+
 typedef struct Type_ Type;
 typedef struct FieldList_ FieldList;
 typedef struct Func_ Func;
@@ -37,6 +40,7 @@ struct FieldList_ {
   char name[NAME_LEN];
   Type *type;
   FieldList *tail;
+  int state;
 };
 
 extern FieldList* varlist[MAX_VARIABLE];

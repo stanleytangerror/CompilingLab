@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
@@ -12,6 +13,15 @@ InterCodes * ichead = NULL;
 int temp_count = 0;
 int addr_count = 0;
 int label_count = 0;
+
+void initvarlist() {
+  int i = 0;
+  for (i = 0; i < MAX_VARIABLE; i ++) {
+    if (varlist[i] != NULL) {
+      varlist[i]->state = STATE_VARIABLE;
+    }
+  }
+}
 
 Operand * get_value(int value) {
   Operand * op = (Operand *) malloc(sizeof(Operand));
@@ -55,9 +65,10 @@ int get_typesize (Type * type) {
       break;
     case structure:
       member = type->u.structure.structure;
-      if (member == NULL) return 0;
+      if (member == NULL) sum = 0;
       while (member != NULL) {
         sum += get_typesize(member->type);
+        member = member->tail;
       }
       break;
     default : break;
@@ -193,6 +204,37 @@ InterCodes * gen_funcdef(char * funcname) {
   return codeline;
 }
 
+InterCodes * gen_getaddr(Operand * result, Operand * op, int size) {
+  InterCodes * codeline = (InterCodes * ) malloc(sizeof(InterCodes));
+  codeline->prev = NULL;
+  codeline->next = NULL;
+  codeline->code.kind = icGETADDR;
+  codeline->code.u.getaddr.result = result;
+  codeline->code.u.getaddr.op = op;
+  codeline->code.u.getaddr.size = size;
+  return codeline;
+}
+
+InterCodes * gen_memread(Operand * result, Operand * op) {
+  InterCodes * codeline = (InterCodes * ) malloc(sizeof(InterCodes));
+  codeline->prev = NULL;
+  codeline->next = NULL;
+  codeline->code.kind = icMEMREAD;
+  codeline->code.u.memread.result = result;
+  codeline->code.u.memread.op = op;
+  return codeline;
+}
+
+InterCodes * gen_memwrite(Operand * result, Operand * op) {
+  InterCodes * codeline = (InterCodes * ) malloc(sizeof(InterCodes));
+  codeline->prev = NULL;
+  codeline->next = NULL;
+  codeline->code.kind = icMEMWRITE;
+  codeline->code.u.memwrite.result = result;
+  codeline->code.u.memwrite.op = op;
+  return codeline;
+}
+
 InterCodes * gen_gotobranch(Operand * label) {
   InterCodes * codeline = (InterCodes * ) malloc(sizeof(InterCodes));
   codeline->prev = NULL;
@@ -280,6 +322,7 @@ InterCodes * gen_write(Operand * op) {
 }
 
 InterCodes * translate_Dec(node * dec, FieldList ** sym_table, Type * type) {
+  printf("Dec\n");
   if (dec->child->sibling == NULL) {
     // VarDec
     node * vardec = dec->child;
@@ -310,6 +353,7 @@ InterCodes * translate_Dec(node * dec, FieldList ** sym_table, Type * type) {
 }
 
 InterCodes * translate_DecList(node * declist, FieldList ** sym_table, Type * type) {
+  printf("DecList\n");
   if (declist->child->sibling == NULL) {
     // Dec
     return translate_Dec(declist->child, sym_table, type);
@@ -325,11 +369,13 @@ InterCodes * translate_DecList(node * declist, FieldList ** sym_table, Type * ty
 }
 
 InterCodes * translate_Def(node * def, FieldList ** sym_table) {
+  printf("Def\n");
   // Specifier DecList SEMI
   return translate_DecList(def->child->sibling, sym_table, NULL);
 }
 
 InterCodes * translate_DefList(node * deflist, FieldList ** sym_table) {
+  printf("DefList\n");
   printf(" deflist ntype.type_nonterm is %s\n", stringNonTerminate[deflist->ntype.type_nonterm]);
   if (deflist->child == NULL) {
     // Empty
@@ -345,6 +391,7 @@ InterCodes * translate_DefList(node * deflist, FieldList ** sym_table) {
 }
 
 InterCodes * translate_Args(node * args, FieldList ** sym_table, Operands ** arg_list) {
+  printf("Args\n");
   if (args->child->sibling == NULL) {
     // Exp
     Operand * t1 = new_temp();
@@ -365,6 +412,7 @@ InterCodes * translate_Args(node * args, FieldList ** sym_table, Operands ** arg
 }
 
 InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) {
+  printf("Exp\n");
   if (exp->child->label == NODE_INT && exp->child->sibling == NULL) {
     // INT
     Operand * value = get_value(exp->child->nvalue.value_int);
@@ -416,14 +464,33 @@ InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) 
   }
   if (exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eASSIGNOP) {
     // Exp ASSIGNOP Exp
-    node * p = exp->child;
-    Operand * t1 = new_temp();
-    assert(p->child->label == NODE_ID);
-    Operand * variable = lookup_varlist(p->child->nvalue.value_id);
-    InterCodes * code1 = translate_Exp(p->sibling->sibling, varlist, t1);
-    InterCodes * code2 =
-      linkcode(2, gen_assign(variable, t1), ((place != NULL) ? gen_assign(place, variable) : NULL) );
-    return linkcode(2, code1, code2);
+    if (exp->child->child->label == NODE_ID) {
+      // Exp (-> ID)  ASSIGNOP Exp
+      node * p = exp->child;
+      Operand * t1 = new_temp();
+      assert(p->child->label == NODE_ID);
+      Operand * variable = lookup_varlist(p->child->nvalue.value_id);
+      InterCodes * code1 = translate_Exp(p->sibling->sibling, varlist, t1);
+      InterCodes * code2 =
+        linkcode(2, gen_assign(variable, t1), ((place != NULL) ? gen_assign(place, variable) : NULL) );
+      return linkcode(2, code1, code2);
+    } else {
+      // Exp (-> structure/array) ASSIGNOP Exp
+      node * p = exp->child;
+      Operand * t1 = new_temp();
+      Operand * t2 = new_temp();
+      Operand * t3 = new_temp();
+    Type * type = NULL;
+    int offset = 0;
+    FieldList * fl = NULL;
+    InterCodes * code1 = translate_Unit_structure(p, sym_table, t1, &type, &offset, &fl);
+    Operand * variable = lookup_varlist(fl->name);
+    InterCodes * code2 = gen_getaddr(t2, variable, offset);
+      InterCodes * code3 = translate_Exp(p->sibling->sibling, varlist, t3);
+      InterCodes * code4 =
+        linkcode(2, gen_memwrite(t2, t3), ((place != NULL) ? gen_assign(place, variable) : NULL) );
+      return linkcode(4, code1, code2, code3, code4);
+    }
   }
   if (exp->child->sibling->label == NODE_TERMINATE 
       && (exp->child->sibling->ntype.type_term == ePLUS ||
@@ -458,17 +525,95 @@ InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) 
   if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
       && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eDOT) {
     // Exp DOT ID (structure)
+    Operand * t1 = new_temp();
+    Operand * t2 = new_temp();
+    Type * type = NULL;
+    int offset = 0;
+    FieldList * fl = NULL;
+    InterCodes * code1 = translate_Unit_structure(exp, sym_table, t1, &type, &offset, &fl);
+    Operand * op = lookup_varlist(fl->name);
+    if (fl->state == STATE_PARAM) 
+      return linkcode(3, code1, gen_binop(ePLUS, t2, op, get_value(offset)), gen_memread(place, t2));
+    else
+      return linkcode(4, code1, gen_getaddr(t2, op, offset), gen_memread(place, t2));
+  }
+  if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
+      && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eLB) {
+    // Exp LB Exp RB (array)
+    Operand * t1 = new_temp();
+    Operand * t2 = new_temp();
+    Type * type = NULL;
+    int offset = 0;
+    FieldList * fl = NULL;
+    InterCodes * code1 = translate_Unit_structure(exp, sym_table, t1, &type, &offset, &fl);
+    Operand * op = lookup_varlist(fl->name);
+    if (fl->state == STATE_PARAM) 
+      return linkcode(3, code1, gen_binop(ePLUS, t2, op, get_value(offset)), gen_memread(place, t2));
+    else
+      return linkcode(4, code1, gen_getaddr(t2, op, offset), gen_memread(place, t2));
+  }
+  return NULL;
+}
+
+InterCodes * translate_Unit_array(node * exp, FieldList ** sym_table, Operand * place, Type ** type, int * offset, FieldList ** fl) {
+  printf("Unit\n");
+  if (exp->child->label == NODE_ID) {
+    // ID
+    (* type) = varlist[findVar(exp->child->nvalue.value_id)]->type;
+    (* fl) = varlist[findVar(exp->child->nvalue.value_id)];
+    (* offset) = 0;
     return NULL;
   }
   if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
       && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eLB) {
     // Exp LB Exp RB (array)
+    Operand * t1 = new_temp();
+    InterCodes * code1 = translate_Exp(exp->child->sibling->sibling, sym_table, t1);
+    Operand * t2 = new_temp();
+    InterCodes * code2 = gen_binop(eSTAR, t1, t1, get_value(*offset));
+    return NULL;
+  }
+  return NULL;
+}
+
+InterCodes * translate_Unit_structure(node * exp, FieldList ** sym_table, Operand * place, Type ** type, int * offset, FieldList ** fl) {
+  printf("Unit\n");
+  if (exp->child->label == NODE_ID) {
+    // ID
+    (* type) = varlist[findVar(exp->child->nvalue.value_id)]->type;
+    (* fl) = varlist[findVar(exp->child->nvalue.value_id)];
+    (* offset) = 0;
+    return NULL;
+  }
+  if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
+      && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eDOT) {
+    // Exp DOT ID (structure)
+    node * p = exp->child;
+    InterCodes * code1 = translate_Unit_structure(p, sym_table, place, type, offset, fl);
+    FieldList * member = (* type)->u.structure.structure;
+    assert(member != NULL);
+    while (member != NULL && strncmp(member->name, p->sibling->sibling->nvalue.value_id, MAXID) != 0) {
+      (* offset) += get_typesize(member->type);
+      member = member->tail;
+    }
+    assert(member != NULL);
+    (* type) = member->type;
+    return code1;
+  }
+  if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
+      && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eLB) {
+    // Exp LB Exp RB (array)
+    Operand * t1 = new_temp();
+    InterCodes * code1 = translate_Exp(exp->child->sibling->sibling, sym_table, t1);
+    Operand * t2 = new_temp();
+    InterCodes * code2 = gen_binop(eSTAR, t1, t1, get_value(*offset));
     return NULL;
   }
   return NULL;
 }
 
 InterCodes * translate_Cond(node * exp, Operand * label_true, Operand * label_false, FieldList ** sym_table) {
+  printf("Cond\n");
   if (exp->child->label == NODE_TERMINATE && exp->child->ntype.type_term == eNOT) {
     // NOT Exp
     return translate_Cond(exp->child->sibling, label_false, label_true, sym_table);
@@ -511,6 +656,7 @@ InterCodes * translate_Cond(node * exp, Operand * label_true, Operand * label_fa
 }
 
 InterCodes * translate_Stmt(node * stmt, FieldList ** sym_table) {
+  printf("Stmt\n");
   if (stmt->child->label == NODE_NONTERMINATE && stmt->child->ntype.type_nonterm == CompSt) {
     // CompSt
     return translate_CompSt(stmt->child, sym_table);
@@ -565,6 +711,7 @@ InterCodes * translate_Stmt(node * stmt, FieldList ** sym_table) {
 }
 
 InterCodes * translate_StmtList(node * stmtlist, FieldList ** sym_table) {
+  printf("StmtList\n");
   if (stmtlist->child == NULL) {
     // Empty
     return NULL;
@@ -579,21 +726,27 @@ InterCodes * translate_StmtList(node * stmtlist, FieldList ** sym_table) {
 }
 
 InterCodes * translate_ParamDec(node * paramdec, FieldList ** sym_table) {
+  printf("ParamDec\n");
   // Specifier VarDec
   node * vardec = paramdec->child->sibling;
   Operand * param = NULL;
   if (vardec->child->label == NODE_ID) {
     // (VarDec -> ID)
-    param = lookup_varlist(vardec->child->nvalue.value_id);
+    char * paramname = vardec->child->nvalue.value_id;
+    varlist[findVar(paramname)]->state = STATE_PARAM;
+    param = lookup_varlist(paramname);
   } else {
     // (VarDec -> VarDec LB INT RB)
     assert(vardec->child->child->label == NODE_ID);
-    param = lookup_varlist(vardec->child->child->nvalue.value_id);
+    char * paramname = vardec->child->child->nvalue.value_id;
+    varlist[findVar(paramname)]->state = STATE_PARAM;
+    param = lookup_varlist(paramname);
   }
   return gen_param(param);
 }
 
 InterCodes * translate_VarList(node * varlist , FieldList ** sym_table) {
+  printf("VarList\n");
   if (varlist->child->sibling == NULL) {
     // ParamDec
     return translate_ParamDec(varlist->child, sym_table);
@@ -607,6 +760,7 @@ InterCodes * translate_VarList(node * varlist , FieldList ** sym_table) {
 }
 
 InterCodes * translate_FunDec(node * fundec, FieldList ** sym_table) {
+  printf("FunDec\n");
   if (fundec->child->sibling->sibling->label == NODE_TERMINATE
       && fundec->child->sibling->sibling->ntype.type_term == eRP) {
     // ID LP RP
@@ -624,6 +778,7 @@ InterCodes * translate_FunDec(node * fundec, FieldList ** sym_table) {
 }
     
 InterCodes * translate_CompSt(node * compst, FieldList ** sym_table) {
+  printf("CompSt\n");
   // LC DefList StmtList RC
   InterCodes * code1 = translate_DefList(compst->child->sibling, sym_table);
   InterCodes * code2 = translate_StmtList(compst->child->sibling->sibling, sym_table);
@@ -631,6 +786,7 @@ InterCodes * translate_CompSt(node * compst, FieldList ** sym_table) {
 }
 
 InterCodes * translate_ExtDef(node * extdef, FieldList ** sym_table) {
+  printf("ExtDef\n");
   if (extdef->child->sibling->label == NODE_TERMINATE && extdef->child->sibling->ntype.type_term == eSEMI) {
     // Specifier SEMI
     return NULL;
@@ -650,6 +806,7 @@ InterCodes * translate_ExtDef(node * extdef, FieldList ** sym_table) {
 }
 
 InterCodes * translate_ExtDefList(node * extdeflist, FieldList ** sym_table) {
+  printf("ExtDefList\n");
   if (extdeflist->child == NULL) {
     // Empty
     return NULL;
@@ -688,13 +845,13 @@ void printoperand(Operand * op) {
   if (op != NULL)
   switch (op->kind) {
     case opVARIABLE:
-      printf(" var%d ", op->u.var_no );
+      printf(" v%d ", op->u.var_no );
       break;
     case opCONSTANT:
       printf(" #%d ", op->u.value );
       break;
     case opADDRESS:
-      printf(" addr%d ", op->u.addr_no );
+      printf(" *%d ", op->u.addr_no );
       break;
     case opTEMP:
       printf(" t%d ", op->u.temp_no );
@@ -760,10 +917,21 @@ void printcode(InterCodes * code) {
         printf(" FUNCTION %s :", p->code.u.funcdef.funcname);
         break;
       case icGETADDR:
+        printoperand(p->code.u.getaddr.result);
+        printf(" := &");
+        printoperand(p->code.u.getaddr.op);
+        printf(" + #%d", p->code.u.getaddr.size);
         break;
       case icMEMREAD:
+        printoperand(p->code.u.memread.result);
+        printf(" := *");
+        printoperand(p->code.u.memread.op);
         break;
       case icMEMWRITE:
+        printf(" * ");
+        printoperand(p->code.u.memwrite.result);
+        printf(" := ");
+        printoperand(p->code.u.memwrite.op);
         break;
       case icGOTOBRANCH:
         printf(" GOTO ");
@@ -820,7 +988,7 @@ void fprintoperand(FILE * file, Operand * op) {
   if (op != NULL)
   switch (op->kind) {
     case opVARIABLE:
-      fprintf(file, " var%d ", op->u.var_no );
+      fprintf(file, " v%d ", op->u.var_no );
       break;
     case opCONSTANT:
       fprintf(file, " #%d ", op->u.value );

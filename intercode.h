@@ -33,7 +33,7 @@ typedef struct InterCode {
     struct { Operand * result, * op1, * op2; } binop;
     struct { Operand * label; } label;
     struct { char funcname[MAXID]; } funcdef;
-    struct { Operand * result, * op; } getaddr;
+    struct { Operand * result, * op; int size; } getaddr;
     struct { Operand * result, * op; } memread;
     struct { Operand * result, * op; } memwrite;
     struct { Operand * label; } gotobranch;
@@ -59,6 +59,10 @@ extern int addr_count;
 extern int label_count;
 
 InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place);
+
+InterCodes * translate_Unit_array(node * exp, FieldList ** sym_table, Operand * place, Type ** type, int * offset, FieldList ** fl);
+
+InterCodes * translate_Unit_structure(node * exp, FieldList ** sym_table, Operand * place, Type ** type, int * offset, FieldList ** fl);
 
 InterCodes * translate_Cond(node * exp, Operand * label_true, Operand * label_false, FieldList ** sym_table);
 
