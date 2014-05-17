@@ -1,4 +1,4 @@
-file=testcodes/test01.c
+file=testcodes/test02.c
 
 analyze:
 	flex lexical.l
@@ -14,6 +14,7 @@ debug:
 
 clean:
 	-rm *~
+	-rm testcodes/*.c~
 	-rm lex.yy.c
 	-rm syntax.tab.*
 	-rm syntax.output

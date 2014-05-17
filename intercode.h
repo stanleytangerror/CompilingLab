@@ -22,7 +22,7 @@ typedef struct Operands {
 } Operands;
 
 typedef struct InterCode {
-  enum { icASSIGN, icADD, icSUB, icMUL, icDIV,
+  enum { icASSIGN, icBINOP,
     icLABEL, icFUNCDEF, icGETADDR, icMEMREAD, icMEMWRITE, 
     icGOTOBRANCH, icIFBRANCH, 
     icFUNCRETURN, icMEMDEC, icARG, icCALL, icPARAM, 
@@ -30,7 +30,7 @@ typedef struct InterCode {
   } kind;
   union {
     struct { Operand * right, * left; } assign;
-    struct { Operand * result, * op1, * op2; } binop;
+    struct { Operand * result, * op1, * op2; enum Terminate sign; } binop;
     struct { Operand * label; } label;
     struct { char funcname[MAXID]; } funcdef;
     struct { Operand * result, * op; int size; } getaddr;
@@ -60,9 +60,7 @@ extern int label_count;
 
 InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place);
 
-InterCodes * translate_Unit_array(node * exp, FieldList ** sym_table, Operand * place, Type ** type, int * offset, FieldList ** fl);
-
-InterCodes * translate_Unit_structure(node * exp, FieldList ** sym_table, Operand * place, Type ** type, int * offset, FieldList ** fl);
+InterCodes * translate_Unit(node * exp, FieldList ** sym_table, Operand * addr, Type ** type);
 
 InterCodes * translate_Cond(node * exp, Operand * label_true, Operand * label_false, FieldList ** sym_table);
 

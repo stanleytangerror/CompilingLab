@@ -1,6 +1,10 @@
 int main()
 {
-  int i, j;
-  while (i < 10) inc(j);
-  write(j);
+int a = 3, b;
+b = read();
+if(a > b)
+write(a);
+else
+write(b);
+return 0;
 }

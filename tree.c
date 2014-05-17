@@ -20,7 +20,7 @@ const char * stringNonTerminate [] = {
 
 const char * stringTerminate [] = {
   "SEMI", "COMMA", "ASSIGNOP", 
-  "PLUS", "MINUS", "STAR", "DIV",
+  "+", "-", "*", "/",
   "AND", "OR", "DOT", "NOT",
   "LP", "RP", "LB", "RB", "LC", "RC",
   "STRUCT", "RETURN", "IF", "ELSE", "WHILE"

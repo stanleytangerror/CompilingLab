@@ -93,6 +93,14 @@ Operands * insert_arglist_head(Operands * arglist, Operand * arg) {
   }
 }
 
+Operand * new_addr() {
+  Operand * op = (Operand *) malloc(sizeof(Operand));
+  op->kind = opADDRESS;
+  op->u.temp_no = temp_count;
+  temp_count ++;
+  return op;
+}
+
 Operand * new_temp() {
   Operand * op = (Operand *) malloc(sizeof(Operand));
   op->kind = opTEMP;
@@ -164,25 +172,11 @@ InterCodes * gen_binop(enum Terminate e, Operand * result, Operand * op1, Operan
   InterCodes * codeline = (InterCodes *) malloc(sizeof(InterCodes));
   codeline->prev = NULL;
   codeline->next = NULL;
-  switch (e) {
-    case ePLUS:
-      codeline->code.kind = icADD;
-      break;
-    case eMINUS:
-      codeline->code.kind = icSUB;
-      break;
-    case eSTAR:
-      codeline->code.kind = icMUL;
-      break;
-    case eDIV:
-      codeline->code.kind = icDIV;
-      break;
-    default :
-      break;
-  }
+  codeline->code.kind = icBINOP;
   codeline->code.u.binop.result = result;
   codeline->code.u.binop.op1 = op1;
   codeline->code.u.binop.op2 = op2;
+  codeline->code.u.binop.sign = e;
   return codeline;
 }
 
@@ -479,17 +473,9 @@ InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) 
       node * p = exp->child;
       Operand * t1 = new_temp();
       Operand * t2 = new_temp();
-      Operand * t3 = new_temp();
-    Type * type = NULL;
-    int offset = 0;
-    FieldList * fl = NULL;
-    InterCodes * code1 = translate_Unit_structure(p, sym_table, t1, &type, &offset, &fl);
-    Operand * variable = lookup_varlist(fl->name);
-    InterCodes * code2 = gen_getaddr(t2, variable, offset);
-      InterCodes * code3 = translate_Exp(p->sibling->sibling, varlist, t3);
-      InterCodes * code4 =
-        linkcode(2, gen_memwrite(t2, t3), ((place != NULL) ? gen_assign(place, variable) : NULL) );
-      return linkcode(4, code1, code2, code3, code4);
+      InterCodes * code1 = translate_Exp(p, sym_table, t1);
+      InterCodes * code2 = translate_Exp(p->sibling->sibling, sym_table, t2);
+      return linkcode(3, code1, code2, gen_memwrite(t1, t2));
     }
   }
   if (exp->child->sibling->label == NODE_TERMINATE 
@@ -525,75 +511,46 @@ InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) 
   if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
       && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eDOT) {
     // Exp DOT ID (structure)
-    Operand * t1 = new_temp();
-    Operand * t2 = new_temp();
+    Operand * addr = new_addr();
     Type * type = NULL;
-    int offset = 0;
-    FieldList * fl = NULL;
-    InterCodes * code1 = translate_Unit_structure(exp, sym_table, t1, &type, &offset, &fl);
-    Operand * op = lookup_varlist(fl->name);
-    if (fl->state == STATE_PARAM) 
-      return linkcode(3, code1, gen_binop(ePLUS, t2, op, get_value(offset)), gen_memread(place, t2));
-    else
-      return linkcode(4, code1, gen_getaddr(t2, op, offset), gen_memread(place, t2));
+    InterCodes * code1 = translate_Unit(exp, sym_table, addr, &type);
+    //if (fl->state == STATE_PARAM) 
+      return linkcode(2, code1, (place != NULL) ? gen_assign(place, addr) : NULL);
+    //else
+    //  return linkcode(4, code1, gen_getaddr(t2, op, offset), gen_memread(place, t2));
   }
   if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
       && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eLB) {
     // Exp LB Exp RB (array)
-    Operand * t1 = new_temp();
-    Operand * t2 = new_temp();
+    Operand * addr = new_addr();
     Type * type = NULL;
-    int offset = 0;
-    FieldList * fl = NULL;
-    InterCodes * code1 = translate_Unit_structure(exp, sym_table, t1, &type, &offset, &fl);
-    Operand * op = lookup_varlist(fl->name);
-    if (fl->state == STATE_PARAM) 
-      return linkcode(3, code1, gen_binop(ePLUS, t2, op, get_value(offset)), gen_memread(place, t2));
-    else
-      return linkcode(4, code1, gen_getaddr(t2, op, offset), gen_memread(place, t2));
+    InterCodes * code1 = translate_Unit(exp, sym_table, addr, &type);
+    return linkcode(2, code1, (place != NULL) ? gen_assign(place, addr) : NULL);
+    // if (fl->state == STATE_PARAM) 
+    //  return linkcode(3, code1, t2));
+    // else
+    //   return linkcode(4, code1, gen_getaddr(t2, op, offset), gen_memread(place, t2));
   }
   return NULL;
 }
 
-InterCodes * translate_Unit_array(node * exp, FieldList ** sym_table, Operand * place, Type ** type, int * offset, FieldList ** fl) {
+InterCodes * translate_Unit(node * exp, FieldList ** sym_table, Operand * addr, Type ** type) {
   printf("Unit\n");
   if (exp->child->label == NODE_ID) {
     // ID
-    (* type) = varlist[findVar(exp->child->nvalue.value_id)]->type;
-    (* fl) = varlist[findVar(exp->child->nvalue.value_id)];
-    (* offset) = 0;
-    return NULL;
-  }
-  if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
-      && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eLB) {
-    // Exp LB Exp RB (array)
-    Operand * t1 = new_temp();
-    InterCodes * code1 = translate_Exp(exp->child->sibling->sibling, sym_table, t1);
-    Operand * t2 = new_temp();
-    InterCodes * code2 = gen_binop(eSTAR, t1, t1, get_value(*offset));
-    return NULL;
-  }
-  return NULL;
-}
-
-InterCodes * translate_Unit_structure(node * exp, FieldList ** sym_table, Operand * place, Type ** type, int * offset, FieldList ** fl) {
-  printf("Unit\n");
-  if (exp->child->label == NODE_ID) {
-    // ID
-    (* type) = varlist[findVar(exp->child->nvalue.value_id)]->type;
-    (* fl) = varlist[findVar(exp->child->nvalue.value_id)];
-    (* offset) = 0;
-    return NULL;
+    node * p = exp->child;
+    (* type) = varlist[findVar(p->nvalue.value_id)]->type;
+    return gen_getaddr(addr, lookup_varlist(exp->child->nvalue.value_id), 0);
   }
   if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
       && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eDOT) {
     // Exp DOT ID (structure)
     node * p = exp->child;
-    InterCodes * code1 = translate_Unit_structure(p, sym_table, place, type, offset, fl);
+    InterCodes * code1 = translate_Unit(p, sym_table, addr, type);
     FieldList * member = (* type)->u.structure.structure;
     assert(member != NULL);
     while (member != NULL && strncmp(member->name, p->sibling->sibling->nvalue.value_id, MAXID) != 0) {
-      (* offset) += get_typesize(member->type);
+      code1 = linkcode(2, code1, gen_binop(ePLUS, addr, addr, get_value(get_typesize(member->type))));
       member = member->tail;
     }
     assert(member != NULL);
@@ -603,11 +560,16 @@ InterCodes * translate_Unit_structure(node * exp, FieldList ** sym_table, Operan
   if (exp->child->label == NODE_NONTERMINATE && exp->child->ntype.type_nonterm == Exp
       && exp->child->sibling->label == NODE_TERMINATE && exp->child->sibling->ntype.type_term == eLB) {
     // Exp LB Exp RB (array)
+    node * p = exp->child;
     Operand * t1 = new_temp();
-    InterCodes * code1 = translate_Exp(exp->child->sibling->sibling, sym_table, t1);
     Operand * t2 = new_temp();
-    InterCodes * code2 = gen_binop(eSTAR, t1, t1, get_value(*offset));
-    return NULL;
+    InterCodes * code1 = translate_Exp(p->sibling->sibling, sym_table, t1);
+    InterCodes * code2 = translate_Unit(p, sym_table, addr, type);
+    assert( (* type)->kind == array );
+    (* type) = (* type)->u.array.elem; 
+    InterCodes * code3 = gen_binop(eSTAR, t1, t1, get_value(get_typesize(* type)));
+    InterCodes * code4 = gen_binop(ePLUS, addr, addr, t1);
+    return linkcode(4, code1, code2, code3, code4);
   }
   return NULL;
 }
@@ -851,7 +813,7 @@ void printoperand(Operand * op) {
       printf(" #%d ", op->u.value );
       break;
     case opADDRESS:
-      printf(" *%d ", op->u.addr_no );
+      printf(" t%d(addr) ", op->u.temp_no );
       break;
     case opTEMP:
       printf(" t%d ", op->u.temp_no );
@@ -880,33 +842,20 @@ void printcode(InterCodes * code) {
         printf(" := ");
         printoperand(p->code.u.assign.right);
         break;
-      case icADD:
+      case icBINOP:
         printoperand(p->code.u.binop.result);
         printf(" := ");
-        printoperand(p->code.u.binop.op1);
-        printf(" + ");
-        printoperand(p->code.u.binop.op2);
-        break;
-      case icSUB:
-        printoperand(p->code.u.binop.result);
-        printf(" := ");
-        printoperand(p->code.u.binop.op1);
-        printf(" - ");
-        printoperand(p->code.u.binop.op2);
-        break;
-      case icMUL:
-        printoperand(p->code.u.binop.result);
-        printf(" := ");
-        printoperand(p->code.u.binop.op1);
-        printf(" * ");
-        printoperand(p->code.u.binop.op2);
-        break;
-      case icDIV:
-        printoperand(p->code.u.binop.result);
-        printf(" := ");
-        printoperand(p->code.u.binop.op1);
-        printf(" / ");
-        printoperand(p->code.u.binop.op2);
+        if (p->code.u.binop.result->kind == opADDRESS) {
+          printoperand(p->code.u.binop.op1);
+          printf(" %s ", stringTerminate[p->code.u.binop.sign]);
+          printoperand(p->code.u.binop.op2);
+        } else {
+          if (p->code.u.binop.op1->kind == opADDRESS) printf(" * ");
+          printoperand(p->code.u.binop.op1);
+          printf(" %s ", stringTerminate[p->code.u.binop.sign]);
+          if (p->code.u.binop.op2->kind == opADDRESS) printf(" * ");
+          printoperand(p->code.u.binop.op2);
+        }
         break;
       case icLABEL:
         printf(" LABEL ");
@@ -914,6 +863,7 @@ void printcode(InterCodes * code) {
         printf(" : ");
         break;
       case icFUNCDEF:
+        printf("\n");
         printf(" FUNCTION %s :", p->code.u.funcdef.funcname);
         break;
       case icGETADDR:
@@ -948,7 +898,6 @@ void printcode(InterCodes * code) {
       case icFUNCRETURN:
         printf(" RETURN ");
         printoperand(p->code.u.funcreturn.op);
-        printf("\n");
         break;
       case icMEMDEC:
         printf(" DEC ");
@@ -973,6 +922,7 @@ void printcode(InterCodes * code) {
         break;
       case icWRITE:
         printf(" WRITE ");
+        if (p->code.u.write.op->kind == opADDRESS) printf(" *");
         printoperand(p->code.u.write.op);
         break;
       default :
@@ -988,22 +938,22 @@ void fprintoperand(FILE * file, Operand * op) {
   if (op != NULL)
   switch (op->kind) {
     case opVARIABLE:
-      fprintf(file, " v%d ", op->u.var_no );
+      fprintf(file, "v%d ", op->u.var_no );
       break;
     case opCONSTANT:
-      fprintf(file, " #%d ", op->u.value );
+      fprintf(file, "#%d ", op->u.value );
       break;
     case opADDRESS:
-      fprintf(file, " addr%d ", op->u.addr_no );
+      fprintf(file, "t%d ", op->u.temp_no );
       break;
     case opTEMP:
-      fprintf(file, " t%d ", op->u.temp_no );
+      fprintf(file, "t%d ", op->u.temp_no );
       break;
     case opLABEL:
-      fprintf(file, " label%d ", op->u.var_no );
+      fprintf(file, "label%d ", op->u.var_no );
       break;
     case opRELOP:
-      fprintf(file, " %s ", stringRelopValue[op->u.relop]);
+      fprintf(file, "%s ", stringRelopValue[op->u.relop]);
       break;
     default :
       break;
@@ -1023,33 +973,20 @@ void fprintcode(FILE * file, InterCodes * code) {
         fprintf(file, " := ");
         fprintoperand(file, p->code.u.assign.right);
         break;
-      case icADD:
+      case icBINOP:
         fprintoperand(file, p->code.u.binop.result);
         fprintf(file, " := ");
-        fprintoperand(file, p->code.u.binop.op1);
-        fprintf(file, " + ");
-        fprintoperand(file, p->code.u.binop.op2);
-        break;
-      case icSUB:
-        fprintoperand(file, p->code.u.binop.result);
-        fprintf(file, " := ");
-        fprintoperand(file, p->code.u.binop.op1);
-        fprintf(file, " - ");
-        fprintoperand(file, p->code.u.binop.op2);
-        break;
-      case icMUL:
-        fprintoperand(file, p->code.u.binop.result);
-        fprintf(file, " := ");
-        fprintoperand(file, p->code.u.binop.op1);
-        fprintf(file, " * ");
-        fprintoperand(file, p->code.u.binop.op2);
-        break;
-      case icDIV:
-        fprintoperand(file, p->code.u.binop.result);
-        fprintf(file, " := ");
-        fprintoperand(file, p->code.u.binop.op1);
-        fprintf(file, " / ");
-        fprintoperand(file, p->code.u.binop.op2);
+        if (p->code.u.binop.result->kind == opADDRESS) {
+          fprintoperand(file, p->code.u.binop.op1);
+          fprintf(file, " %s ", stringTerminate[p->code.u.binop.sign]);
+          fprintoperand(file, p->code.u.binop.op2);
+        } else {
+          if (p->code.u.binop.op1->kind == opADDRESS) fprintf(file, " * ");
+          fprintoperand(file, p->code.u.binop.op1);
+          fprintf(file, " %s ", stringTerminate[p->code.u.binop.sign]);
+          if (p->code.u.binop.op2->kind == opADDRESS) fprintf(file, " * ");
+          fprintoperand(file, p->code.u.binop.op2);
+        }
         break;
       case icLABEL:
         fprintf(file, " LABEL ");
@@ -1057,13 +994,25 @@ void fprintcode(FILE * file, InterCodes * code) {
         fprintf(file, " : ");
         break;
       case icFUNCDEF:
+        fprintf(file, "\n");
         fprintf(file, " FUNCTION %s :", p->code.u.funcdef.funcname);
         break;
       case icGETADDR:
+        fprintoperand(file, p->code.u.getaddr.result);
+        fprintf(file, " := &");
+        fprintoperand(file, p->code.u.getaddr.op);
+        fprintf(file, " + #%d", p->code.u.getaddr.size);
         break;
       case icMEMREAD:
+        fprintoperand(file, p->code.u.memread.result);
+        fprintf(file, " := *");
+        fprintoperand(file, p->code.u.memread.op);
         break;
       case icMEMWRITE:
+        fprintf(file, " *");
+        fprintoperand(file, p->code.u.memwrite.result);
+        fprintf(file, " := ");
+        fprintoperand(file, p->code.u.memwrite.op);
         break;
       case icGOTOBRANCH:
         fprintf(file, " GOTO ");
@@ -1080,7 +1029,6 @@ void fprintcode(FILE * file, InterCodes * code) {
       case icFUNCRETURN:
         fprintf(file, " RETURN ");
         fprintoperand(file, p->code.u.funcreturn.op);
-        fprintf(file, "\n");
         break;
       case icMEMDEC:
         fprintf(file, " DEC ");
@@ -1105,6 +1053,7 @@ void fprintcode(FILE * file, InterCodes * code) {
         break;
       case icWRITE:
         fprintf(file, " WRITE ");
+        if (p->code.u.write.op->kind == opADDRESS) fprintf(file, " *");
         fprintoperand(file, p->code.u.write.op);
         break;
       default :

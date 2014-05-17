@@ -1,21 +1,15 @@
-struct Operands 
-{ 
-  int o1; 
-  int o2; 
-}; 
-
-int add(struct Operands temp) 
-{ 
-  return (temp.o1 + temp.o2); 
-} 
-
-int main() 
-{ 
-  int n; 
-  struct Operands op; 
-  op.o1 = 1; 
-  op.o2 = 2; 
-  n = add(op); 
-  write(n); 
-  return 0; 
-} 
+int main()
+{
+int a = 3, b = 4, c;
+c = a * a + b * b;
+write(c);
+c = (a + c) / b;
+write(c);
+a = a + b;
+b = a - b;
+a = a - b;
+b = ((a - b) * 2 - 1) + (a / b) * (2 * (3 + b));
+write(a);
+write(b);
+return 0;
+}
