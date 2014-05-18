@@ -1,31 +1,14 @@
-int abs(int z)
+int gcd(int m, int n)
 {
-	if (z>=0) return z;
-	else return -z;
+if(n == 0)
+return m;
+else
+return gcd(n, (m - (m / n)*n));
 }
-
-int abs2(int x ,int y)
-{
-	if (x-y >= 0) return x-y;
-	else return y-x;
-}
-
 int main()
 {
-	int i ,j, a[10][10];
-	float k;
-
-	i;
-	if (i<10)
-		j = abs(i,k);
-	else 
-		j = abs2(i);
-
-	while (i<10)
-	{
-		k = k+abs(1.0);	
-	}
-
-	i = i +abs(a[j]);
-	j;
+int i = 35, j = 14, k;
+k = gcd(i, j);
+write(k);
+return 0;
 }

@@ -1,25 +1,25 @@
-int abs(int x)
-{
-  float fl[10];
-  if (x >= 0)
-    return fl;
-  else
-    return -x;
-}
-
 int main()
 {
-  int i, j;
-  int a[10][10];
-
-  float k;
-  
-  while (i < 10)
+  int a[10];
+  int i = 0, j = 10, temp;
+  while(i < j)
   {
-    j = j + 1;
-    i = i + abs(-1);
+    a[i] = i;
+    i = i + 1;
   }
-  
-  j;
-  return a;
+  i = 0;
+  while(i < (j / 2))
+  {
+    temp = a[i];
+    a[i] = a[j - i - 1];
+    a[j - i - 1] = temp;
+    i = i + 1;
+  }
+  i = 0;
+  while(i < j)
+  {
+    write(a[i]);
+    i = i + 1;
+  }
+  return 0;
 }

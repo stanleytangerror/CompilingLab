@@ -5,7 +5,7 @@
 #include "semantic.h"
 
 typedef struct Operand_ {
-  enum { opVARIABLE, opCONSTANT, opADDRESS, opTEMP, opLABEL, opRELOP } kind;
+  enum { opVARIABLE, opCONSTANT, opADDRESS, opVARADDRESS, opTEMP, opLABEL, opRELOP } kind;
   union {
     int var_no;
     int value;
@@ -17,7 +17,8 @@ typedef struct Operand_ {
 } Operand;
 
 typedef struct Operands {
-  Operand op;
+  Operand * op;
+  enum ArgType { atVALUE, atADDR } type;
   struct Operands * prev, * next;
 } Operands;
 

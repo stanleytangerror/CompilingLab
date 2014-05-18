@@ -27,11 +27,12 @@
 %type <type_node> DefList Def DecList Dec Exp
 
 %right ASSIGNOP
-%right NOT
+%left OR
+%left AND
+%left RELOP
 %left PLUS MINUS
 %left STAR DIV
-%left RELOP
-%left AND OR
+%right NOT
 %left LP LB LC
 %left RP RB RC
 %left DOT

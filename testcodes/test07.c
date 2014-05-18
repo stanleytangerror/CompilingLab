@@ -1,24 +1,20 @@
-int abs(int x)
-{
-  if (x >= 0)
-    return x;
-  else
-    return -x;
-}
-
 int main()
 {
-  int i, j;
-  int a[10][10], b[5];
-
-  float k;
-  
-  while (i < 10)
-  {
-    k * a;
-    i = i + abs(-1);
-  }
-  a[i] + j;
-  
-  a[j] - b[j];
+int s, p, m, n = 10;
+while(n < 100)
+{
+p = 1;
+s = 0;
+m = n;
+while(m != 0)
+{
+p = p * (m - (m / 10) * 10);
+s = s + (m - (m / 10) * 10);
+m = m / 10;
+}
+if(s > p)
+write(n);
+n = n + 1;
+}
+return 0;
 }
