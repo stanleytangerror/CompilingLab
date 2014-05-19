@@ -1,16 +1,14 @@
-int abs(int x)
+int print(int a, int b)
 {
-if (x >= 0) return x;
-else return -x;
+write(a);
+write(b);
+return 0;
 }
 int main()
 {
-int i, j, a[10][10];
-float k = 3;
-while (i < 10)
-{
-j = k;
-k = k + 1.0;
-}
-k = abs(j);
+int i, j, k;
+i = 2;
+j = 3;
+k = print(i, j);
+return 0;
 }

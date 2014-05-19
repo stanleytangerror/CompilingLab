@@ -1,6 +1,10 @@
 int main()
 {
-int i, j, k;
-int j;
-while (i < 10) j = j + 1;
+int i = 10;
+while(i > 0)
+{
+write(i);
+i = i - 1;
+}
+return 0;
 }

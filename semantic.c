@@ -374,7 +374,7 @@ int subtreeDecList(node * p, Type * upperlevel, bool isStruct , Func * currentfu
         type->kind = array;
         type->u.array.size = p->child->sibling->sibling->nvalue.value_int;
 
-        if (fl->type->kind == basic) {
+        if (fl->type->kind == basic || fl->type->kind == structure) {
           type->u.array.elem = fl->type;
           fl->type = type;
         } else {

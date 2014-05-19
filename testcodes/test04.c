@@ -1,17 +1,9 @@
-int abs(int x)
-{
-  if (x >= 0) return x;
-  else return -x;
-}
-
 int main()
 {
-  int i, j, k;
-  while ( i < 10) j = j + 1;
-}
-
-int abs(int x)
-{
-  if (x <= 0) return -x;
-  else return x;
+int a[3];
+a[0] = 1;
+a[1] = 2;
+a[2] = a[0] + a[1];
+write(a[2]);
+return 0;
 }

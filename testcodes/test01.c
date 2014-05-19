@@ -1,9 +1,15 @@
-int main() 
-{ 
-  int n; 
-  n = read(); 
-  if (n > 0) write(1); 
-  else if (n < 0) write (-1); 
-  else write(0); 
-  return 0; 
+int main()
+{
+int a = 3, b = 4, c;
+c = a * a + b * b;
+write(c);
+c = (a + c) / b;
+write(c);
+a = a + b;
+b = a - b;
+a = a - b;
+b = ((a - b) * 2 - 1) + (a / b) * (2 * (3 + b));
+write(a);
+write(b);
+return 0;
 }
