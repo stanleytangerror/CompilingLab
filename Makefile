@@ -3,7 +3,7 @@ file=testcodes/test02.c
 analyze:
 	flex lexical.l
 	bison -d syntax.y
-	gcc -g main.c intercode.c semantic.c tree.c syntax.tab.c -lfl -ly -o parser
+	gcc -g main.c optimize.c intercode.c semantic.c tree.c syntax.tab.c -lfl -ly -o parser
 	./parser $(file)
 
 debug:

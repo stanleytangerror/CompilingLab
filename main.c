@@ -3,6 +3,8 @@
 #include "semantic.h"
 #include "intercode.h"
 
+#include "optimize.h"
+
 extern FILE * yydebug;
 //extern node * forest;
 //extern void printnode(node *);
@@ -34,8 +36,15 @@ int main(int argc ,char** argv){
     //getfuncdeclist();
     checkfunc();
     translate(forest);
-    printcode(ichead);
+    //printcode(ichead);
     writecode();
+    getcode(ichead);
+    getcode(ichead);
+    getcode(ichead);
+    getcode(ichead);
+    getcode(ichead);
+	exchange(ichead);
+    optimizecode();
   }
 
   return 0;
