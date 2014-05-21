@@ -68,7 +68,9 @@ InterCodes * translate_Cond(node * exp, Operand * label_true, Operand * label_fa
 InterCodes * translate_StmtList(node * stmtlist, FieldList ** sym_table);
 
 InterCodes * translate_CompSt(node * compst, FieldList ** sym_table);
-
+Operand * new_addr() ;
+InterCodes * gen_binop(enum Terminate e, Operand * result, Operand * op1, Operand * op2);
+InterCodes * gen_getaddr(Operand * result, Operand * op, int size);
 void printoperand(Operand * op); 
 
 void printcode(InterCodes * code);
