@@ -94,6 +94,21 @@ int addFunc(Func* func){
   funclist[probe] = func;
 }
 
+void initialDefaultFunc(){
+	char wname[NAME_LEN]="write";
+	char rname[NAME_LEN]="read";
+	Func * func = (Func *) malloc (sizeof(Func));
+    	func->returntype  =(Type *) malloc (sizeof(Type));
+    	strncpy(func->name , wname , NAME_LEN);
+    	func->param = NULL; 
+	addFunc(func);
+	Func * func1 = (Func *) malloc (sizeof(Func));
+    	func1->returntype  =(Type *) malloc (sizeof(Type));
+    	strncpy(func1->name , rname , NAME_LEN);
+    	func1->param = NULL; 
+	addFunc(func1);
+}
+
 int addFuncdec(Func* func){
   char *name = func->name;
   unsigned int probe = hash_pjw(name);
@@ -502,13 +517,18 @@ bool subtreeArgs(node * p , char * funcname){
   if (temp != NULL || param != NULL) {
     checkargs = false;
   }
-  if ( !checkargs ) {
+  /*if ( !checkargs ) {
+    bool f = true;
+    if (strcmp(funcname , "write") == 0 ) f = false;
+    if (strcmp(funcname , "read") == 0) f = false;
+ 	if (f){
     printf("Error type 9 at line %d: The method \"%s\" is not applicable for the arguments\n" ,
         p->lineno , funcname);
+	}
     return false;
   } else {
     return true;
-  }
+  }*/
   /*
      int paramlist[100];
      int count=1;
@@ -639,7 +659,7 @@ Type * subtreeExp(node * p){
         } else if (valid) {
           if ( (lefttype->kind != funclist[probe]->returntype->kind) 
               || (lefttype->u.basic != funclist[probe]->returntype->u.basic) ) {
-            printf("Error type 5 at line %d: Type mismatched\n" , p->child->lineno);
+            //printf("Error type 5 at line %d: Type mismatched\n" , p->child->lineno);
             valid = false;				
           } else {
             subtreeExp(p->child);
@@ -724,7 +744,7 @@ Type * subtreeExp(node * p){
           if ( !cmpType(lefttype, temptype) ) {
             valid = false;
             if (freturn) printf("Error type 8 at line %d: The return type mismatched\n" , p->lineno);
-            if (assignop || fdecexp) printf("Error type 5 at line %d: Type mismatched\n" , p->lineno);
+            if (assignop || fdecexp) ;//printf("Error type 5 at line %d: Type mismatched\n" , p->lineno);
             else printf("Error type 7 at line %d: Operands type mismatched\n", p->lineno);	
           }
           if (valid) {
@@ -757,7 +777,7 @@ Type * subtreeExp(node * p){
         if (lefttype->kind != basic || lefttype->u.basic != checkbasic){
           valid = false;
           if (freturn) printf("Error type 8 at line %d: The return type mismatched\n" , p->child->lineno);
-          if (assignop || fdecexp) printf("Error type 5 at line %d: Type mismatched\n" , p->child->lineno);
+          if (assignop || fdecexp) ;//printf("Error type 5 at line %d: Type mismatched\n" , p->child->lineno);
           else printf("Error type 7 at line %d: Operands type mismatched\n" , p->child->lineno);
         }
         else {
@@ -895,6 +915,7 @@ void gettypelist() {
     }
   }
 }
+
 
 void getfunclist() {
   int i = 0;
