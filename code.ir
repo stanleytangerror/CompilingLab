@@ -1,57 +1,14 @@
 
  FUNCTION main :
- DEC a  40 
-t56  := &a  + #0
-t57  := &a  + #0
-i  := #0 
-j  := #10 
+a  := #3 
+ READ t1 
+b  := t1 
+ IF a > b  GOTO label0 
+ GOTO label1 
  LABEL label0  : 
- IF i < j  GOTO label1 
+ WRITE a 
  GOTO label2 
  LABEL label1  : 
-t6  := i 
-t6  := t6  * #4 
-t4  := t56  + t6 
- *t4  := i 
-i  := i  + #1 
- GOTO label0 
+ WRITE b 
  LABEL label2  : 
-i  := #0 
- LABEL label3  : 
-t14  := j  / #2 
-t13  := t14 
- IF i < t13  GOTO label4 
- GOTO label5 
- LABEL label4  : 
-t18  := i  * #4 
-t17  := t57  + t18 
-t20  := *t17 
-temp  := t20 
-t23  := i  * #4 
-t21  := t57  + t23 
-t27  := j  - i 
-t25  := t27  - #1 
-t25  := t25  * #4 
-t22  := t57  + t25 
-t31  := *t22 
- *t21  := t31 
-t36  := j  - i 
-t34  := t36  - #1 
-t34  := t34  * #4 
-t32  := t57  + t34 
- *t32  := temp 
-i  := i  + #1 
- GOTO label3 
- LABEL label5  : 
-i  := #0 
- LABEL label6  : 
- IF i < j  GOTO label7 
- GOTO label8 
- LABEL label7  : 
-t47  := i  * #4 
-t46  := t57  + t47 
- WRITE  *t46 
-i  := i  + #1 
- GOTO label6 
- LABEL label8  : 
  RETURN #0 
