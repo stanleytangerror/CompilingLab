@@ -11,7 +11,6 @@
 
 InterCodes * ichead = NULL;
 int temp_count = 0;
-int addr_count = 0;
 int label_count = 0;
 
 void initvarlist() {
@@ -122,6 +121,10 @@ Operand * new_label() {
 }
 
 Operand * lookup_varlist(char * id) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   assert(id != NULL);
   Operand * op = (Operand *) malloc(sizeof(Operand));
   op->kind = opVARIABLE;
@@ -334,6 +337,10 @@ InterCodes * gen_write(Operand * op) {
 }
 
 InterCodes * translate_Dec(node * dec, FieldList ** sym_table, Type * type) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (dec->child->sibling == NULL) {
     // VarDec
     node * vardec = dec->child;
@@ -345,7 +352,14 @@ InterCodes * translate_Dec(node * dec, FieldList ** sym_table, Type * type) {
       return gen_memdec(lookup_varlist(vardec->child->nvalue.value_id), get_typesize(idtype));
     } else {
       // (VarDec -> VarDec LB INT RB)
+<<<<<<< HEAD
       assert(vardec->child->child->label == NODE_ID);
+=======
+      if (vardec->child->child->label != NODE_ID) {
+        printf("Cannot tranlslate the code\n");
+        exit(0);
+      }
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
       idtype = varlist[findVar(vardec->child->child->nvalue.value_id)]->type;
       return gen_memdec(lookup_varlist(vardec->child->child->nvalue.value_id), get_typesize(idtype));
     }
@@ -367,6 +381,10 @@ InterCodes * translate_Dec(node * dec, FieldList ** sym_table, Type * type) {
 }
 
 InterCodes * translate_DecList(node * declist, FieldList ** sym_table, Type * type) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (declist->child->sibling == NULL) {
     // Dec
     return translate_Dec(declist->child, sym_table, type);
@@ -382,11 +400,19 @@ InterCodes * translate_DecList(node * declist, FieldList ** sym_table, Type * ty
 }
 
 InterCodes * translate_Def(node * def, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   // Specifier DecList SEMI
   return translate_DecList(def->child->sibling, sym_table, NULL);
 }
 
 InterCodes * translate_DefList(node * deflist, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (deflist->child == NULL) {
     // Empty
     return NULL;
@@ -401,6 +427,10 @@ InterCodes * translate_DefList(node * deflist, FieldList ** sym_table) {
 }
 
 InterCodes * translate_Args(node * args, FieldList ** sym_table, Operands ** arg_list) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (args->child->sibling == NULL) {
     // Exp
     Operand * t1 = new_temp();
@@ -421,6 +451,10 @@ InterCodes * translate_Args(node * args, FieldList ** sym_table, Operands ** arg
 }
 
 InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (exp->child->label == NODE_INT && exp->child->sibling == NULL) {
     // INT
     Operand * value = get_value(exp->child->nvalue.value_int);
@@ -431,6 +465,10 @@ InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) 
       if (place == NULL) return NULL;
       Operand * variable = lookup_varlist(exp->child->nvalue.value_id);
     if ( varlist[findVar(exp->child->nvalue.value_id)]->type->kind != basic ) {
+<<<<<<< HEAD
+=======
+      // printf("ID in Exp %s\n", exp->child->nvalue.value_id);
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
       place->kind = opADDRESS;
       return gen_getaddr(place, variable, 0);
     } else {
@@ -599,6 +637,10 @@ InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) 
 }
 
 InterCodes * translate_Unit(node * exp, FieldList ** sym_table, Operand * addr, Type ** type) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (exp->child->label == NODE_ID) {
     // ID
     node * p = exp->child;
@@ -653,6 +695,10 @@ InterCodes * translate_Unit(node * exp, FieldList ** sym_table, Operand * addr, 
 }
 
 InterCodes * translate_Cond(node * exp, Operand * label_true, Operand * label_false, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (exp->child != NULL && exp->child->label == NODE_TERMINATE && exp->child->ntype.type_term == eNOT) {
     // NOT Exp
     return translate_Cond(exp->child->sibling, label_false, label_true, sym_table);
@@ -710,6 +756,10 @@ InterCodes * translate_Cond(node * exp, Operand * label_true, Operand * label_fa
 }
 
 InterCodes * translate_Stmt(node * stmt, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (stmt->child->label == NODE_NONTERMINATE && stmt->child->ntype.type_nonterm == CompSt) {
     // CompSt
     return translate_CompSt(stmt->child, sym_table);
@@ -764,6 +814,10 @@ InterCodes * translate_Stmt(node * stmt, FieldList ** sym_table) {
 }
 
 InterCodes * translate_StmtList(node * stmtlist, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (stmtlist->child == NULL) {
     // Empty
     return NULL;
@@ -778,6 +832,10 @@ InterCodes * translate_StmtList(node * stmtlist, FieldList ** sym_table) {
 }
 
 InterCodes * translate_ParamDec(node * paramdec, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   // Specifier VarDec
   node * vardec = paramdec->child->sibling;
   Operand * param = NULL;
@@ -795,6 +853,10 @@ InterCodes * translate_ParamDec(node * paramdec, FieldList ** sym_table) {
 }
 
 InterCodes * translate_VarList(node * varlist , FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (varlist->child->sibling == NULL) {
     // ParamDec
     return translate_ParamDec(varlist->child, sym_table);
@@ -808,6 +870,10 @@ InterCodes * translate_VarList(node * varlist , FieldList ** sym_table) {
 }
 
 InterCodes * translate_FunDec(node * fundec, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (fundec->child->sibling->sibling->label == NODE_TERMINATE
       && fundec->child->sibling->sibling->ntype.type_term == eRP) {
     // ID LP RP
@@ -825,6 +891,10 @@ InterCodes * translate_FunDec(node * fundec, FieldList ** sym_table) {
 }
     
 InterCodes * translate_CompSt(node * compst, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   // LC DefList StmtList RC
   InterCodes * code1 = translate_DefList(compst->child->sibling, sym_table);
   InterCodes * code2 = translate_StmtList(compst->child->sibling->sibling, sym_table);
@@ -832,6 +902,10 @@ InterCodes * translate_CompSt(node * compst, FieldList ** sym_table) {
 }
 
 InterCodes * translate_ExtDef(node * extdef, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (extdef->child->sibling->label == NODE_TERMINATE && extdef->child->sibling->ntype.type_term == eSEMI) {
     // Specifier SEMI
     return NULL;
@@ -851,6 +925,10 @@ InterCodes * translate_ExtDef(node * extdef, FieldList ** sym_table) {
 }
 
 InterCodes * translate_ExtDefList(node * extdeflist, FieldList ** sym_table) {
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 24d045569d3012703df5c6d494f0ba2c51e9b2b8
   if (extdeflist->child == NULL) {
     // Empty
     return NULL;

@@ -29,6 +29,7 @@ int main(int argc ,char** argv){
     traversal(forest, 0, nothingnode);
     //printf("============================\n");
     //traversal(forest, 0, addvariable);
+    initialDefaultFunc();
     semantic(forest, NULL,NULL);
     //gettypelist();
     //getvarlist();

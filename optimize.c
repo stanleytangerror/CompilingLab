@@ -47,25 +47,25 @@ bool checktemp(InterCodes * code , int k){
 		case icBINOP:
         		if (p->code.u.binop.result->kind == opTEMP && p->code.u.binop.result->u.temp_no == k)
 				return false;
-			if (p->code.u.binop.result->kind == opADDRESS && p->code.u.binop.result->u.addr_no == k)
+			if (p->code.u.binop.result->kind == opADDRESS && p->code.u.binop.result->u.temp_no == k)
 				return false;
 		break;
 		case icGETADDR:
         		if (p->code.u.getaddr.result->kind == opTEMP && p->code.u.getaddr.result->u.temp_no == k)
 			return false;
-			if (p->code.u.getaddr.result->kind == opADDRESS && p->code.u.getaddr.result->u.addr_no == k)
+			if (p->code.u.getaddr.result->kind == opADDRESS && p->code.u.getaddr.result->u.temp_no == k)
 			return false;
        		break;
 		case icMEMREAD:
         		if (p->code.u.memread.result->kind == opTEMP && p->code.u.memread.result->u.temp_no == k)
 			return false;
-			if (p->code.u.memread.result->kind == opADDRESS && p->code.u.memread.result->u.addr_no == k)
+			if (p->code.u.memread.result->kind == opADDRESS && p->code.u.memread.result->u.temp_no == k)
 			return false;
         	break;
 		case icMEMWRITE:
 			if (p->code.u.memwrite.result->kind == opTEMP && p->code.u.memwrite.result->u.temp_no == k)
 			return false;
-			if (p->code.u.memwrite.result->kind == opADDRESS && p->code.u.memwrite.result->u.addr_no == k)
+			if (p->code.u.memwrite.result->kind == opADDRESS && p->code.u.memwrite.result->u.temp_no == k)
 			return false;
         	break;
 		default :
@@ -141,11 +141,11 @@ void getcode(InterCodes * code) {
         break;
       case icBINOP:
 	if (p->code.u.binop.result->kind == opADDRESS && p->code.u.binop.op1->kind == opADDRESS 
-		&& addr[p->code.u.binop.op1->u.addr_no] !=NULL)	{
-			p->code.u.binop.op1 = addr[p->code.u.binop.op1->u.addr_no];
+		&& addr[p->code.u.binop.op1->u.temp_no] !=NULL)	{
+			p->code.u.binop.op1 = addr[p->code.u.binop.op1->u.temp_no];
 		}
-	if (p->code.u.binop.result->kind == opADDRESS && addr[p->code.u.binop.result->u.addr_no] !=NULL){
-			addr[p->code.u.binop.result->u.addr_no] = NULL;
+	if (p->code.u.binop.result->kind == opADDRESS && addr[p->code.u.binop.result->u.temp_no] !=NULL){
+			addr[p->code.u.binop.result->u.temp_no] = NULL;
 		}
 	if (p->code.u.binop.op1->kind == opTEMP && reg[p->code.u.binop.op1->u.temp_no] != NULL){
 			p->code.u.binop.op1 = reg[p->code.u.binop.op1->u.temp_no];	
@@ -153,10 +153,10 @@ void getcode(InterCodes * code) {
 	if (p->code.u.binop.op2->kind == opTEMP && reg[p->code.u.binop.op2->u.temp_no] != NULL){
 			p->code.u.binop.op2 = reg[p->code.u.binop.op2->u.temp_no];	
 		}
-	if (p->code.u.binop.op1->kind == opADDRESS && reg[p->code.u.binop.op1->u.addr_no] != NULL){
+	if (p->code.u.binop.op1->kind == opADDRESS && reg[p->code.u.binop.op1->u.temp_no] != NULL){
 			p->code.u.binop.op1 = reg[p->code.u.binop.op1->u.temp_no];	
 		}
-	if (p->code.u.binop.op2->kind == opADDRESS && reg[p->code.u.binop.op2->u.addr_no] != NULL){
+	if (p->code.u.binop.op2->kind == opADDRESS && reg[p->code.u.binop.op2->u.temp_no] != NULL){
 			p->code.u.binop.op2 = reg[p->code.u.binop.op2->u.temp_no];	
 		}
 	if (p->code.u.binop.result->kind == opTEMP && p->code.u.binop.op1->kind == opCONSTANT && p->code.u.binop.op2->kind == opCONSTANT){
@@ -186,7 +186,7 @@ void getcode(InterCodes * code) {
         break;
       case icGETADDR:
 	 {
-	 int slot = p->code.u.getaddr.result->u.addr_no;
+	 int slot = p->code.u.getaddr.result->u.temp_no;
 	 int i = 0 ;
 	 bool check = false;
 	 for (i = 0 ;i<1000 ;i++){
@@ -236,8 +236,8 @@ void getcode(InterCodes * code) {
       case icARG:
 	if (p->code.u.arg.arg->kind == opTEMP && reg[p->code.u.arg.arg->u.temp_no] !=NULL)
 		p->code.u.arg.arg =  reg[p->code.u.arg.arg->u.temp_no];
-	if (p->code.u.arg.arg->kind == opADDRESS && addr[p->code.u.arg.arg->u.addr_no] !=NULL)	{
-			p->code.u.arg.arg = addr[p->code.u.arg.arg->u.addr_no];
+	if (p->code.u.arg.arg->kind == opADDRESS && addr[p->code.u.arg.arg->u.temp_no] !=NULL)	{
+			p->code.u.arg.arg = addr[p->code.u.arg.arg->u.temp_no];
 		}
         break;
       case icWRITE:
@@ -253,7 +253,7 @@ void getcode(InterCodes * code) {
 }
 
 void optimizecode() {
-  FILE * file = fopen("test02.ir", "w");
+  FILE * file = fopen("code.ir", "w");
   if (file == NULL) {
     perror("Open file failed\n");
     exit(0);
@@ -262,14 +262,13 @@ void optimizecode() {
   fclose(file);
 }
 
-
-void delete(InterCodes *p){
+void deletecode(InterCodes *p){
 	p->prev->next = p->next;
 	p->next->prev = p->prev;
 }
 //q after p
 void add(InterCodes *p , InterCodes * q){
-	delete(q);	
+	deletecode(q);	
 	q->next = p->next;
 	q->prev = p;
 	p->next->prev = q;
