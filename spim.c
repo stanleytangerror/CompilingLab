@@ -4,6 +4,8 @@
 #include "semantic.h"
 #include "intercode.h"
 #include "optimize.h"
+#include "spim.h"
+
 int currentParam = 0;
 int currentArg = 0;
 int currentfp = 0;

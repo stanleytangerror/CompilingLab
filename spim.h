@@ -1,5 +1,5 @@
-#ifndef __OPTIMIZE_H__
-#define __OPTIMIZE_H__
+#ifndef __SPIM_H__
+#define __SPIM_H__
 
 #include "tree.h"
 #include "semantic.h"
