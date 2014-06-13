@@ -2,7 +2,7 @@
 #include "tree.h"
 #include "semantic.h"
 #include "intercode.h"
-
+#include "spim.h"
 #include "optimize.h"
 
 extern FILE * yydebug;
@@ -25,8 +25,8 @@ int main(int argc ,char** argv){
   yyparse();
   InitialHashTable();
   if (compile) {
-    traversal(forest, 0, printnode);
-    //traversal(forest, 0, nothingnode);
+    //traversal(forest, 0, printnode);
+    traversal(forest, 0, nothingnode);
     //printf("============================\n");
     //traversal(forest, 0, addvariable);
     semantic(forest, NULL,NULL);
@@ -37,14 +37,15 @@ int main(int argc ,char** argv){
     checkfunc();
     translate(forest);
     //printcode(ichead);
-    writecode();
+    //writecode();
     getcode(ichead);
     getcode(ichead);
     getcode(ichead);
     getcode(ichead);
     getcode(ichead);
-	exchange(ichead);
-    optimizecode();
+    exchange(ichead);
+    //optimizecode();
+    spimcode();
   }
 
   return 0;

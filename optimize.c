@@ -98,7 +98,6 @@ void exchange(InterCodes * code){
 
 void getcode(InterCodes * code) {
   if (code == NULL) {
-    printf("no intermediate code\n");
     return ;
   }
   int k = 0;
@@ -111,9 +110,9 @@ void getcode(InterCodes * code) {
   while (p != NULL) {
     switch (p->code.kind) {
       case icASSIGN:
-    if (p->code.u.assign.left->kind == opVARIABLE && p->code.u.assign.right->kind == opTEMP){
+    if ( p->code.u.assign.right->kind == opTEMP){
 		InterCodes* q = p->prev;
-		if (q->code.kind == icBINOP && q->code.u.binop.result->kind == opTEMP 
+		if ( ( q->code.kind == icASSIGN || q->code.kind == icBINOP || q->code.kind == icREAD || q->code.kind == icCALL) && q->code.u.binop.result->kind == opTEMP 
 			&& (q->code.u.binop.result->u.temp_no == p->code.u.assign.right->u.temp_no)){
 			q->code.u.binop.result = p->code.u.assign.left;
 			q->next = p->next;
@@ -221,7 +220,6 @@ void getcode(InterCodes * code) {
 		p->code.u.memread.op =  reg[p->code.u.memread.op->u.temp_no];
         break;
       case icMEMWRITE:
-        if (p->code.u.memwrite.op->kind == opADDRESS) printf(" *");
 	if (p->code.u.memwrite.op->kind == opTEMP && reg[p->code.u.memwrite.op->u.temp_no] !=NULL)
 		p->code.u.memwrite.op =  reg[p->code.u.memwrite.op->u.temp_no];
         break;
@@ -263,6 +261,7 @@ void optimizecode() {
   fprintcode(file, ichead);
   fclose(file);
 }
+
 
 void delete(InterCodes *p){
 	p->prev->next = p->next;

@@ -503,8 +503,8 @@ bool subtreeArgs(node * p , char * funcname){
     checkargs = false;
   }
   if ( !checkargs ) {
-    printf("Error type 9 at line %d: The method \"%s\" is not applicable for the arguments\n" ,
-        p->lineno , funcname);
+    //printf("Error type 9 at line %d: The method \"%s\" is not applicable for the arguments\n" ,
+    //    p->lineno , funcname);
     return false;
   } else {
     return true;
@@ -616,8 +616,8 @@ Type * subtreeExp(node * p){
         valid = false;
         if (findVar(funcname) > 0 )
           printf("Error type 11 at line %d: \"%s\" must be a function\n"  ,q->lineno , funcname);		
-        else
-          printf("Error type 2 at line %d: Undefined function \"%s\"\n" , q->lineno , q->nvalue.value_id);
+        //else
+        //  printf("Error type 2 at line %d: Undefined function \"%s\"\n" , q->lineno , q->nvalue.value_id);
       } else {
         q = q->sibling->sibling;
         // if (q->label == NODE_NONTERMINATE && q->ntype.type_nonterm == Args) 
