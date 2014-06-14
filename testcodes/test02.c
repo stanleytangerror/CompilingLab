@@ -1,10 +1,14 @@
 int main()
 {
-int a = 3, b;
-b = read();
-if(a > b)
-write(a);
-else
+int a=0,b=1,i=0,n;
+n = read();
+while (i < n)
+{
+int c = a+b;
 write(b);
+a = b;
+b = c;
+i = i + 1;
+}
 return 0;
 }

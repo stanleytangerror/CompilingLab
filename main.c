@@ -2,7 +2,7 @@
 #include "tree.h"
 #include "semantic.h"
 #include "intercode.h"
-
+#include "spim.h"
 #include "optimize.h"
 
 extern FILE * yydebug;
@@ -44,8 +44,9 @@ int main(int argc ,char** argv){
     getcode(ichead);
     getcode(ichead);
     getcode(ichead);
-	exchange(ichead);
-    optimizecode();
+    exchange(ichead);
+    //optimizecode();
+    spimcode();
   }
 
   return 0;
