@@ -1,10 +1,11 @@
-file=testcodes/test10.c
+input=testcodes/A-1.c
+output=spim.s
 
 analyze:
 	flex lexical.l
 	bison -d syntax.y
 	gcc -g main.c optimize.c spim.c intercode.c semantic.c tree.c syntax.tab.c -lfl -ly -o parser
-	./parser $(file)
+	./parser $(input) $(output)
 
 debug:
 	flex lexical.l
