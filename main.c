@@ -39,7 +39,7 @@ int main(int argc ,char** argv){
     checkfunc();
     translate(forest);
     //printcode(ichead);
-    writecode();
+    //writecode();
     getcode(ichead);
     getcode(ichead);
     getcode(ichead);
