@@ -10,9 +10,10 @@ extern FILE * yydebug;
 //extern void printnode(node *);
 
 int main(int argc ,char** argv){
-	if (argc<=1) return 1;
+	if (argc != 3)
+        return 1;
 	
-  compile = true;
+    compile = true;
 
 	FILE *f = fopen(argv[1], "r");
 	if (!f){
@@ -38,7 +39,7 @@ int main(int argc ,char** argv){
     checkfunc();
     translate(forest);
     //printcode(ichead);
-    // writecode();
+    //writecode();
     getcode(ichead);
     getcode(ichead);
     getcode(ichead);
@@ -46,7 +47,7 @@ int main(int argc ,char** argv){
     getcode(ichead);
     exchange(ichead);
     //optimizecode();
-    spimcode();
+    spimcode(argv[2]);
   }
 
   return 0;

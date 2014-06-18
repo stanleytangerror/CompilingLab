@@ -49,7 +49,7 @@ extern Func * funclist[MAX_VARIABLE];
 extern Func * funcdeclist[MAX_VARIABLE];
 
 void InitialHashTable();
-
+void initialDefaultFunc();
 
 int addType(Type* type);
 int findType(char *name);

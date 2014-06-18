@@ -468,7 +468,7 @@ InterCodes * translate_Exp(node * exp, FieldList ** sym_table, Operand * place) 
     FieldList * fl = func->param;
     Operands * argptr = arg_list;
     while (argptr->next != NULL) argptr = argptr->next;
-    while (fl != NULL && argptr->prev != NULL) {
+    while (fl != NULL && argptr != NULL) {
       if (fl->type->kind == basic && (argptr->op->kind == opVARADDRESS || argptr->op->kind == opADDRESS) ) {
         Operand * temp = new_temp();
         code2 = linkcode(2, code2, gen_memread(temp, argptr->op));
@@ -726,6 +726,11 @@ InterCodes * translate_Stmt(node * stmt, FieldList ** sym_table) {
     node * p = stmt->child;
     Operand * t1 = new_temp();
     InterCodes * code1 = translate_Exp(p->sibling, sym_table, t1);
+      if (t1->kind == opADDRESS) {
+        Operand * temp = new_temp();
+        code1 = linkcode(2, code1, gen_memread(temp, t1));
+        t1 = temp;
+      }
     InterCodes * code2 = gen_funcreturn(t1);
     code1 = linkcode(2, code1, code2);
     return code1;
@@ -1161,7 +1166,7 @@ void fprintcode(FILE * file, InterCodes * code) {
 }
 
 void writecode() {
-  FILE * file = fopen("test01.ir", "w");
+  FILE * file = fopen("rawcode.ir", "w");
   if (file == NULL) {
     perror("Open file failed\n");
     exit(0);

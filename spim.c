@@ -58,8 +58,8 @@ void initialvar(){
   }
 }
 
-void spimcode(){
-  FILE * file = fopen("spim.s" , "w");
+void spimcode(char * spimcode){
+  FILE * file = fopen(spimcode , "w");
   if (file == NULL) {
     perror("Open file failed\n");
     exit(0);
