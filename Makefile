@@ -1,4 +1,4 @@
-input=testcodes/A-1.c
+input=testcodes/C-1.c
 output=spim.s
 
 analyze:

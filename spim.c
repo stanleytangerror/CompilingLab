@@ -164,15 +164,17 @@ void fspimcode(FILE * file, InterCodes * code) {
 	Operand * opleft = p->code.u.assign.left;
 	Operand * opright = p->code.u.assign.right;
 	if (opright->kind == opCONSTANT) {
+			printf("%s := %d\n" , varlist[opleft->u.var_no]->name , stack_sp[opleft->u.var_no]);
 			fprintf(file, "li $t0, %d\n" , opright->u.value);
-			if (opleft->kind == opVARIABLE) fprintf(file ,"sw $t0 , %d($fp)" , fpoffset(opleft) );
-			else fprintf(file , "sw $t0 , %d($fp)" , fpoffset(opleft) );
+			//if (opleft->kind == opVARIABLE) fprintf(file ,"sw $t0 , %d($fp)" , fpoffset(opleft) );
+			fprintf(file , "sw $t0 , %d($fp)" , fpoffset(opleft) );
 		}
 	if (opright->kind == opVARIABLE || opright->kind == opVARADDRESS) {
+		//printf("%s := %d\n" , varlist[opleft->u.var_no]->name , stack_sp[105]);
 		fprintf(file , "lw $t0 , ");
 		fprintf(file , "%d($fp)\n" , fpoffset(opright));
-		if (opleft->kind == opVARIABLE) fprintf(file ,"sw $t0 , %d($fp)" , fpoffset(opleft) );
-			else fprintf(file , "sw $t0 , %d($fp)" , fpoffset(opleft) );
+		//if (opleft->kind == opVARIABLE) fprintf(file ,"sw $t0 , %d($fp)" , fpoffset(opleft) );
+		fprintf(file , "sw $t0 , %d($fp)" , fpoffset(opleft) );
 	}
         //fspimoperand(file, p->code.u.assign.left);
         //fprintf(file, ", ");

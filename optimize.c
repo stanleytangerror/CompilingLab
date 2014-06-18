@@ -112,8 +112,12 @@ void getcode(InterCodes * code) {
       case icASSIGN:
     if ( p->code.u.assign.right->kind == opTEMP){
 		InterCodes* q = p->prev;
-		if ( ( q->code.kind == icASSIGN || q->code.kind == icBINOP || q->code.kind == icREAD || q->code.kind == icCALL) && q->code.u.binop.result->kind == opTEMP 
-			&& (q->code.u.binop.result->u.temp_no == p->code.u.assign.right->u.temp_no)){
+		if (q->code.kind == icASSIGN && q->code.u.assign.left->kind == opTEMP && (q->code.u.assign.left->u.temp_no == p->code.u.assign.right->u.temp_no) ){
+			q->code.u.assign.left = p->code.u.assign.left;
+			q->next = p->next;
+			p->next->prev = q;
+		}
+		if ( (q->code.kind == icBINOP || q->code.kind == icREAD || q->code.kind == icCALL) && q->code.u.binop.result->kind == opTEMP && (q->code.u.binop.result->u.temp_no == p->code.u.assign.right->u.temp_no)){
 			q->code.u.binop.result = p->code.u.assign.left;
 			q->next = p->next;
 			p->next->prev = q;

@@ -73,15 +73,15 @@ int printHex(int number5)
 
 int main() {
 	int count = 0;
-	int i = 9400;
-	while(i<9500)
+	int index = 9400;
+	while(index<9500)
 	{
-		if(isNarcissistic(i) == 1)
+		if(isNarcissistic(index) == 1)
 		{
-			printHex(i);
+			printHex(index);
 			count = count + 1;
 		}
-		i=i +1;
+		index=index +1;
 	}
 	return count;
 }
