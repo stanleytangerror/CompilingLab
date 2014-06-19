@@ -46,7 +46,7 @@ int main(int argc ,char** argv){
     getcode(ichead);
     getcode(ichead);
     exchange(ichead);
-    //optimizecode();
+    optimizecode();
     spimcode(argv[2]);
   }
 
